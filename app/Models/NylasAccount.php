@@ -25,4 +25,20 @@ class NylasAccount extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Get the messages synchronized under this account.
+     */
+    public function messages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EmailMessage::class, 'nylas_account_id');
+    }
+
+    /**
+     * Get the threads synchronized under this account.
+     */
+    public function threads(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EmailThread::class, 'nylas_account_id');
+    }
 }

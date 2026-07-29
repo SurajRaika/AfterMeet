@@ -89,11 +89,16 @@ class NylasWebhookController extends Controller
         $eventType = $event['type'] ?? 'unknown';
         $data = $event['data'] ?? [];
         $grantId = $data['grant_id'] ?? null;
+        $objectId = $data['object']['id'] ?? null;
 
         NylasWebhookEvent::create([
             'event_type' => $eventType,
             'grant_id' => $grantId,
             'payload' => $event,
         ]);
+
+        if ($eventType === 'message.created' && $grantId && $objectId) {
+            \App\Jobs\SyncNewEmailJob::dispatch($grantId, $objectId);
+        }
     }
 }

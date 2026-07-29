@@ -90,6 +90,74 @@ class NylasService
     }
 
     /**
+     * Retrieve messages for a given grant ID.
+     *
+     * @param string $grantId
+     * @param array $queryParams
+     * @return array|null
+     */
+    public function getMessages(string $grantId, array $queryParams = []): ?array
+    {
+        $url = "{$this->apiUri}/v3/grants/{$grantId}/messages";
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->clientSecret,
+                'Accept' => 'application/json',
+            ])->get($url, $queryParams);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            Log::error('Nylas get messages failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Nylas get messages exception', [
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return null;
+    }
+
+    /**
+     * Retrieve details of a specific message for a given grant ID.
+     *
+     * @param string $grantId
+     * @param string $messageId
+     * @return array|null
+     */
+    public function getMessage(string $grantId, string $messageId): ?array
+    {
+        $url = "{$this->apiUri}/v3/grants/{$grantId}/messages/{$messageId}";
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->clientSecret,
+                'Accept' => 'application/json',
+            ])->get($url);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            Log::error('Nylas get message details failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Nylas get message details exception', [
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return null;
+    }
+
+    /**
      * Send an email using a connected grant.
      *
      * @param string $grantId
