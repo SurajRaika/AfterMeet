@@ -17,8 +17,12 @@ beforeEach(function () {
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
     // Delete existing roles and users to prevent collision
-    DB::table('roles')->delete();
+    DB::table('model_has_roles')->delete();
+    DB::table('changelog_user')->delete();
+    DB::table('subscriptions')->delete();
+    DB::table('posts')->delete();
     DB::table('users')->delete();
+    DB::table('roles')->delete();
 
     $roleAdmin = \Spatie\Permission\Models\Role::create([
         'id' => 1,
