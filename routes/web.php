@@ -44,6 +44,9 @@ Route::middleware('auth')->group(function () {
 
         Route::post('prospects/import', [ProspectImportController::class, 'import'])->name('prospects.import');
         Route::post('prospects/{id}/send-next-step', [ProspectController::class, 'sendNextStep'])->name('prospects.send-next-step');
+        Route::post('prospects/views', [ProspectController::class, 'storeView'])->name('prospects.views.store');
+        Route::delete('prospects/views/{id}', [ProspectController::class, 'destroyView'])->name('prospects.views.destroy');
+        Route::post('prospects/{id}/update-stage', [ProspectController::class, 'updateStage'])->name('prospects.update-stage');
 
         Route::resource('templates', TemplateController::class)->names([
             'index' => 'templates.index',
