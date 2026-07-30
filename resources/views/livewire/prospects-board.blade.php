@@ -354,6 +354,11 @@ new class extends Component {
                 </button>
             </div>
 
+            <a href="{{ route('prospects.import.show') }}" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg shadow transition-colors">
+                <x-phosphor-upload-simple-bold class="w-4 h-4" />
+                Import CSV
+            </a>
+
             <a href="{{ route('prospects.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow transition-colors">
                 <x-phosphor-plus-bold class="w-4 h-4" />
                 Create Prospect
@@ -387,9 +392,7 @@ new class extends Component {
     </div>
 
     <!-- Main Workspace -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Left Side / Main Table or Kanban Board -->
-        <div class="lg:col-span-3 space-y-4">
+    <div class="space-y-4">
 
             @if($layout === 'kanban')
                 <!-- KANBAN BOARD VIEW -->
@@ -639,46 +642,6 @@ new class extends Component {
                     </table>
                 </div>
             @endif
-        </div>
-
-        <!-- Right Side / Import Sidebar Box -->
-        <div class="lg:col-span-1 space-y-4">
-            <div class="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm">
-                <h3 class="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                    <x-phosphor-upload-simple-bold class="w-4 h-4 text-indigo-600" />
-                    Import CSV
-                </h3>
-                <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
-                    Upload a CSV file containing columns like <code class="font-mono bg-zinc-100 dark:bg-zinc-900 px-1 py-0.5 rounded text-zinc-700 dark:text-zinc-300">company_name</code>, <code class="font-mono bg-zinc-100 dark:bg-zinc-900 px-1 py-0.5 rounded text-zinc-700 dark:text-zinc-300">contact_name</code>, and <code class="font-mono bg-zinc-100 dark:bg-zinc-900 px-1 py-0.5 rounded text-zinc-700 dark:text-zinc-300">contact_email</code> to mass import contacts.
-                </p>
-
-                <form action="{{ route('prospects.import') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-                    @csrf
-
-                    <div>
-                        <label for="import_file" class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">CSV File</label>
-                        <input type="file" name="file" id="import_file" required class="block w-full text-xs text-zinc-500 dark:text-zinc-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-950/50 dark:file:text-indigo-400 hover:file:bg-indigo-100 transition-all cursor-pointer border border-zinc-300 dark:border-zinc-700 rounded-lg p-1 bg-zinc-50 dark:bg-zinc-900" />
-                        @error('file') <span class="text-red-500 text-xs block mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div>
-                        <label for="import_blueprint_id" class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Assign Blueprint</label>
-                        <select name="blueprint_id" id="import_blueprint_id" class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-xs py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                            <option value="">Do Not Assign</option>
-                            @foreach($this->blueprints as $bp)
-                                <option value="{{ $bp->id }}">{{ $bp->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('blueprint_id') <span class="text-red-500 text-xs block mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <button type="submit" class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow transition-colors">
-                        <x-phosphor-upload-simple-bold class="w-4 h-4" />
-                        Start Import
-                    </button>
-                </form>
-            </div>
-        </div>
     </div>
 
     <!-- Create Custom View Modal (Alpine.js) -->
