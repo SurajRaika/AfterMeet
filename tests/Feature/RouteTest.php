@@ -155,3 +155,10 @@ test('responds with 200 for all auth routes', function ($url) {
 
     $response->assertStatus(200);
 })->with('authroutes');
+
+test('templates.ai-builder returns 200 for authenticated user', function () {
+    $user = \App\Models\User::find(1);
+    $this->actingAs($user);
+    $response = $this->get(route('templates.ai-builder'));
+    $response->assertStatus(200);
+});

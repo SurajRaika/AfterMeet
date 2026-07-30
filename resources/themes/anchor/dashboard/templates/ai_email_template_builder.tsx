@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createRoot } from 'react-dom/client';
 
 const SparklesIcon = ({ className = "w-4 h-4" }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -139,6 +140,30 @@ const PRESETS = [
 ];
 
 export default function App() {
+  const prospectList = useMemo(() => {
+    const real = (window as any).realProspects || [];
+    const mappedReal = real.map((p: any) => ({
+      id: `real_${p.id}`,
+      contact_name: p.contact_name || 'N/A',
+      company_name: p.company_name || 'N/A',
+      event_name: 'N/A',
+      product_interest: 'N/A',
+      industry: 'N/A',
+      meeting_notes: p.notes || 'N/A',
+      recent_news: 'N/A',
+      your_company: 'Our Company',
+      job_title: p.contact_role || 'N/A',
+      is_real: true,
+    }));
+
+    const mappedMocks = MOCK_PROSPECTS.map(p => ({
+      ...p,
+      id: `mock_${p.id}`
+    }));
+
+    return [...mappedReal, ...mappedMocks];
+  }, []);
+
   const [templateTitle, setTemplateTitle] = useState(PRESETS[0].title);
   const [subject, setSubject] = useState(PRESETS[0].subject);
   const [body, setBody] = useState(PRESETS[0].body);
@@ -151,7 +176,9 @@ export default function App() {
   // UI state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(true); // Welcome modal active on initial load
-  const [selectedProspectId, setSelectedProspectId] = useState(1);
+  const [selectedProspectId, setSelectedProspectId] = useState(
+    prospectList.length > 0 ? prospectList[0].id : 'mock_1'
+  );
   const [generationMode, setGenerationMode] = useState('dynamic'); // 'dynamic' | 'direct'
   const [creativity, setCreativity] = useState('balanced'); // 'strict' | 'balanced' | 'creative'
   
@@ -162,11 +189,11 @@ export default function App() {
   const [saveNotification, setSaveNotification] = useState('');
 
   // Cached dynamic AI generations per prospect
-  const [dynamicCache, setDynamicCache] = useState({});
+  const [dynamicCache, setDynamicCache] = useState<Record<string, any>>({});
 
   const currentProspect = useMemo(
-    () => MOCK_PROSPECTS.find(p => p.id === Number(selectedProspectId)) || MOCK_PROSPECTS[0],
-    [selectedProspectId]
+    () => prospectList.find(p => String(p.id) === String(selectedProspectId)) || prospectList[0],
+    [selectedProspectId, prospectList]
   );
 
   const directSubject = useMemo(() => {
@@ -189,7 +216,7 @@ export default function App() {
     return result;
   }, [body, currentProspect]);
 
-  const generateAIDynamicVariation = async (prospect, customCreativity = creativity) => {
+  const generateAIDynamicVariation = async (prospect: any, customCreativity = creativity) => {
     setIsGenerating(true);
     
     const mappedContext = activeFieldIds
@@ -230,7 +257,10 @@ CRM PROSPECT CONTEXT DATA:
 ${mappedContext}`;
 
     try {
-      const apiKey = "";
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+      if (!apiKey) {
+        throw new Error("No VITE_GEMINI_API_KEY set. Falling back to client-side templates.");
+      }
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
       const payload = {
@@ -297,7 +327,10 @@ ${mappedContext}`;
     const userPrompt = `Subject: ${subject}\n\nBody:\n${body}`;
 
     try {
-      const apiKey = "";
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+      if (!apiKey) {
+        throw new Error("No VITE_GEMINI_API_KEY set. Falling back to client-side polish.");
+      }
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
       const payload = {
@@ -369,7 +402,7 @@ ${mappedContext}`;
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleApplyPreset = (preset) => {
+  const handleApplyPreset = (preset: any) => {
     setTemplateTitle(preset.title);
     setSubject(preset.subject);
     setBody(preset.body);
@@ -377,11 +410,11 @@ ${mappedContext}`;
     setIsWelcomeModalOpen(false); // Close welcome popup
   };
 
-  const insertTagAtCursor = (tag) => {
+  const insertTagAtCursor = (tag: string) => {
     setBody(prev => prev + ` ${tag} `);
   };
 
-  const toggleFieldActive = (fieldId) => {
+  const toggleFieldActive = (fieldId: string) => {
     setActiveFieldIds(prev => 
       prev.includes(fieldId) 
         ? prev.filter(id => id !== fieldId)
@@ -396,9 +429,38 @@ ${mappedContext}`;
     setDynamicCache({});
   };
 
-  const handleSaveTemplate = () => {
-    setSaveNotification('Template saved successfully!');
-    setTimeout(() => setSaveNotification(''), 3000);
+  const handleSaveTemplate = async () => {
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+      const response = await fetch('/dashboard/templates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({
+          name: templateTitle || 'Untitled Email Template',
+          subject: subject,
+          body: body,
+        }),
+      });
+
+      if (response.ok) {
+        setSaveNotification('Template saved successfully! Redirecting...');
+        setTimeout(() => {
+          window.location.href = '/dashboard/templates';
+        }, 1500);
+      } else {
+        const errorData = await response.json();
+        console.error('Error details:', errorData);
+        alert('Failed to save template: ' + (errorData.message || 'Unknown error'));
+      }
+    } catch (error: any) {
+      console.error('Error saving template:', error);
+      alert('Error saving template: ' + error.message);
+    }
   };
 
   return (
@@ -442,6 +504,13 @@ ${mappedContext}`;
             >
               Clear
             </button>
+
+            <a
+              href="/dashboard/templates"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
+            >
+              Cancel
+            </a>
 
             <button
               onClick={handleSaveTemplate}
@@ -640,9 +709,9 @@ ${mappedContext}`;
                   onChange={(e) => setSelectedProspectId(e.target.value)}
                   className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-indigo-600 focus:bg-white w-full sm:w-auto cursor-pointer shadow-2xs"
                 >
-                  {MOCK_PROSPECTS.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      #{p.id}: {p.contact_name} ({p.company_name})
+                  {prospectList.map((p) => (
+                    <option key={String(p.id)} value={String(p.id)}>
+                      {p.is_real ? `👤 [Real] ${p.contact_name} (${p.company_name})` : `✨ [Demo] ${p.contact_name} (${p.company_name})`}
                     </option>
                   ))}
                 </select>
@@ -999,4 +1068,13 @@ ${mappedContext}`;
 
     </div>
   );
+}
+
+// Mount React component to DOM
+if (typeof document !== 'undefined') {
+  const container = document.getElementById('ai-email-template-builder-root');
+  if (container) {
+    const root = createRoot(container);
+    root.render(<App />);
+  }
 }

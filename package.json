@@ -19,6 +19,10 @@
     "vite": "^6.4"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.1.12"
+    "@tailwindcss/postcss": "^4.1.12",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   }
 }

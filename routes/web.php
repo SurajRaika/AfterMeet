@@ -45,6 +45,8 @@ Route::middleware('auth')->group(function () {
         Route::post('prospects/import', [ProspectImportController::class, 'import'])->name('prospects.import');
         Route::post('prospects/{id}/send-next-step', [ProspectController::class, 'sendNextStep'])->name('prospects.send-next-step');
 
+        Route::get('templates/ai-builder', [TemplateController::class, 'aiBuilder'])->name('templates.ai-builder');
+
         Route::resource('templates', TemplateController::class)->names([
             'index' => 'templates.index',
             'create' => 'templates.create',

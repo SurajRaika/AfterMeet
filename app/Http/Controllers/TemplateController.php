@@ -20,6 +20,17 @@ class TemplateController extends Controller
     }
 
     /**
+     * Show the AI Template Builder.
+     */
+    public function aiBuilder()
+    {
+        $tenantId = auth()->user()->organization_id ?? auth()->id();
+        $prospects = Prospect::where('tenant_id', $tenantId)->get();
+
+        return view('theme::dashboard.templates.ai-builder', compact('prospects'));
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()
@@ -44,6 +55,13 @@ class TemplateController extends Controller
             'subject' => $request->subject,
             'body' => $request->body,
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Template created successfully.',
+            ]);
+        }
 
         return redirect()->route('templates.index')->with('success', 'Template created successfully.');
     }

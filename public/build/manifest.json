@@ -1,11 +1,11 @@
 {
   "resources/css/filament/admin/theme.css": {
-    "file": "assets/theme-DRT1wFy8.css",
+    "file": "assets/theme-CLVWreFV.css",
     "src": "resources/css/filament/admin/theme.css",
     "isEntry": true
   },
   "resources/themes/anchor/assets/css/app.css": {
-    "file": "assets/app-75U0MKBP.css",
+    "file": "assets/app-ZxAjUkCx.css",
     "src": "resources/themes/anchor/assets/css/app.css",
     "isEntry": true
   },
@@ -13,6 +13,12 @@
     "file": "assets/app-CaUPGaqM.js",
     "name": "app",
     "src": "resources/themes/anchor/assets/js/app.js",
+    "isEntry": true
+  },
+  "resources/themes/anchor/dashboard/templates/ai_email_template_builder.tsx": {
+    "file": "assets/ai_email_template_builder-BfNCWvxD.js",
+    "name": "ai_email_template_builder",
+    "src": "resources/themes/anchor/dashboard/templates/ai_email_template_builder.tsx",
     "isEntry": true
   }
 }
