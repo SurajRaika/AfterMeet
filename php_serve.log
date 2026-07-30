@@ -5,66 +5,156 @@
 
   Press Ctrl+C to stop the server
 
-  2026-07-29 17:36:49 / ................................................ ~ 1s
-  2026-07-29 17:36:51 /blog ...................................... ~ 500.45ms
-  2026-07-29 17:39:15 / ............................................ ~ 0.17ms
-  2026-07-29 17:39:15 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.06ms
-  2026-07-29 17:39:15 /build/assets/app-C4zYiXDr.css ............... ~ 0.14ms
-  2026-07-29 17:39:15 /build/assets/app-CaUPGaqM.js ................ ~ 0.06ms
-  2026-07-29 17:39:15 /wave/img/icons/anchor.png ................... ~ 0.22ms
-  2026-07-29 17:39:15 /wave/img/icons/turtle.png ................... ~ 0.45ms
-  2026-07-29 17:39:15 /wave/img/icons/compass.png ................ ~ 500.52ms
-  2026-07-29 17:39:15 /wave/img/icons/lighthouse.png ............. ~ 500.77ms
-  2026-07-29 17:39:15 /wave/img/icons/chest.png .................. ~ 500.92ms
-  2026-07-29 17:39:15 /js/filament/actions/actions.js?v=4.12.3.0 . ~ 501.07ms
-  2026-07-29 17:39:15 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 501.13ms
-  2026-07-29 17:39:15 /js/filament/schemas/schemas.js?v=4.12.3.0 . ~ 501.18ms
-  2026-07-29 17:39:15 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.06ms
-  2026-07-29 17:39:15 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.13ms
-  2026-07-29 17:39:15 /wave/img/character.png ...................... ~ 0.20ms
-  2026-07-29 17:39:15 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.45ms
-  2026-07-29 17:39:17 /blog ...................................... ~ 500.44ms
-  2026-07-29 17:39:17 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.08ms
-  2026-07-29 17:39:17 /build/assets/app-CaUPGaqM.js ................ ~ 0.13ms
-  2026-07-29 17:39:17 /wave/img/icons/anchor.png ................... ~ 0.28ms
-  2026-07-29 17:39:17 /wave/img/icons/turtle.png ................... ~ 0.50ms
-  2026-07-29 17:39:17 /build/assets/app-C4zYiXDr.css ............... ~ 0.70ms
-  2026-07-29 17:39:17 /wave/img/icons/compass.png .................. ~ 0.07ms
-  2026-07-29 17:39:17 /wave/img/icons/lighthouse.png ............... ~ 0.31ms
-  2026-07-29 17:39:17 /wave/img/icons/chest.png .................... ~ 0.48ms
-  2026-07-29 17:39:17 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.67ms
-  2026-07-29 17:39:17 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.74ms
-  2026-07-29 17:39:17 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.80ms
-  2026-07-29 17:39:17 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.04ms
-  2026-07-29 17:39:17 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.11ms
-  2026-07-29 17:39:17 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.20ms
-  2026-07-29 17:39:18 /changelog ................................... ~ 0.11ms
-  2026-07-29 17:39:18 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.08ms
-  2026-07-29 17:39:18 /build/assets/app-C4zYiXDr.css ............... ~ 0.20ms
-  2026-07-29 17:39:18 /build/assets/app-CaUPGaqM.js ................ ~ 0.35ms
-  2026-07-29 17:39:18 /wave/img/icons/anchor.png ................... ~ 0.50ms
-  2026-07-29 17:39:18 /wave/img/icons/turtle.png ................... ~ 0.66ms
-  2026-07-29 17:39:18 /wave/img/icons/compass.png .................. ~ 0.81ms
-  2026-07-29 17:39:18 /wave/img/icons/lighthouse.png ............... ~ 0.05ms
-  2026-07-29 17:39:18 /wave/img/icons/chest.png .................... ~ 0.24ms
-  2026-07-29 17:39:18 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.44ms
-  2026-07-29 17:39:18 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.14ms
-  2026-07-29 17:39:18 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.19ms
-  2026-07-29 17:39:18 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.26ms
-  2026-07-29 17:39:18 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.25ms
-  2026-07-29 17:39:18 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.20ms
-  2026-07-29 17:39:19 /blog ...................................... ~ 500.42ms
-  2026-07-29 17:39:19 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.09ms
-  2026-07-29 17:39:19 /build/assets/app-CaUPGaqM.js ................ ~ 0.13ms
-  2026-07-29 17:39:19 /wave/img/icons/anchor.png ................... ~ 0.29ms
-  2026-07-29 17:39:19 /wave/img/icons/turtle.png ................... ~ 0.53ms
-  2026-07-29 17:39:19 /build/assets/app-C4zYiXDr.css ............... ~ 0.72ms
-  2026-07-29 17:39:19 /wave/img/icons/compass.png .................. ~ 0.07ms
-  2026-07-29 17:39:19 /wave/img/icons/lighthouse.png ............... ~ 0.28ms
-  2026-07-29 17:39:19 /wave/img/icons/chest.png .................... ~ 0.45ms
-  2026-07-29 17:39:19 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.29ms
-  2026-07-29 17:39:19 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.35ms
-  2026-07-29 17:39:19 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.41ms
-  2026-07-29 17:39:19 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.25ms
-  2026-07-29 17:39:19 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.12ms
-  2026-07-29 17:39:19 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.11ms
+  2026-07-29 11:18:52 /auth/login ...................................... ~ 1s
+  2026-07-29 11:18:53 /storage/auth/background.jpg ................. ~ 0.07ms
+  2026-07-29 11:18:53 /auth/build/assets/styles.css ................ ~ 0.29ms
+  2026-07-29 11:18:53 /auth/app.css ................................ ~ 0.52ms
+  2026-07-29 11:18:53 /auth/build/assets/scripts.js ................ ~ 0.85ms
+  2026-07-29 11:18:53 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 1.02ms
+  2026-07-29 11:18:55 /livewire/update ........................... ~ 500.46ms
+  2026-07-29 11:18:56 /livewire/update ........................... ~ 500.49ms
+  2026-07-29 11:18:57 / ............................................ ~ 0.04ms
+  2026-07-29 11:18:57 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.08ms
+  2026-07-29 11:18:57 /build/assets/app-CaUPGaqM.js ................ ~ 0.13ms
+  2026-07-29 11:18:57 /wave/img/icons/anchor.png ................... ~ 0.37ms
+  2026-07-29 11:18:57 /wave/img/icons/turtle.png ................... ~ 0.56ms
+  2026-07-29 11:18:57 /build/assets/app-75U0MKBP.css ............... ~ 0.76ms
+  2026-07-29 11:18:57 /wave/img/icons/compass.png .................. ~ 0.07ms
+  2026-07-29 11:18:57 /wave/img/icons/lighthouse.png ............... ~ 0.23ms
+  2026-07-29 11:18:57 /wave/img/icons/chest.png .................... ~ 0.39ms
+  2026-07-29 11:18:57 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.62ms
+  2026-07-29 11:18:57 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.73ms
+  2026-07-29 11:18:57 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.45ms
+  2026-07-29 11:18:57 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.05ms
+  2026-07-29 11:18:57 /wave/img/character.png ...................... ~ 0.13ms
+  2026-07-29 11:18:57 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.48ms
+  2026-07-29 11:18:57 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.38ms
+  2026-07-29 11:18:58 /dashboard/prospects ......................... ~ 0.13ms
+  2026-07-29 11:18:58 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.06ms
+  2026-07-29 11:18:58 /build/assets/app-75U0MKBP.css ............... ~ 0.12ms
+  2026-07-29 11:18:58 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.28ms
+  2026-07-29 11:18:58 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.20ms
+  2026-07-29 11:18:58 /build/assets/app-CaUPGaqM.js ................ ~ 0.51ms
+  2026-07-29 11:18:58 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.40ms
+  2026-07-29 11:18:59 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.48ms
+  2026-07-29 11:18:59 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.58ms
+  2026-07-29 11:18:59 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.03ms
+  2026-07-29 11:19:00 /dashboard/templates ......................... ~ 0.14ms
+  2026-07-29 11:19:03 /dashboard/blueprints ...................... ~ 500.48ms
+  2026-07-29 11:19:03 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.04ms
+  2026-07-29 11:19:03 /build/assets/app-CaUPGaqM.js ................ ~ 0.07ms
+  2026-07-29 11:19:03 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.24ms
+  2026-07-29 11:19:03 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.35ms
+  2026-07-29 11:19:03 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.42ms
+  2026-07-29 11:19:03 /build/assets/app-75U0MKBP.css ............... ~ 0.54ms
+  2026-07-29 11:19:03 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.65ms
+  2026-07-29 11:19:03 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.04ms
+  2026-07-29 11:19:03 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.12ms
+  2026-07-29 11:20:00 /auth/login .................................. ~ 0.16ms
+  2026-07-29 11:20:01 /storage/auth/background.jpg ................. ~ 0.05ms
+  2026-07-29 11:20:01 /auth/build/assets/styles.css ................ ~ 0.25ms
+  2026-07-29 11:20:01 /auth/app.css ................................ ~ 0.40ms
+  2026-07-29 11:20:01 /auth/build/assets/scripts.js ................ ~ 0.77ms
+  2026-07-29 11:20:01 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.92ms
+  2026-07-29 11:20:02 /livewire/update ............................. ~ 0.11ms
+  2026-07-29 11:20:04 /livewire/update ................................. ~ 1s
+  2026-07-29 11:20:04 / ............................................ ~ 0.04ms
+  2026-07-29 11:20:04 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.05ms
+  2026-07-29 11:20:04 /build/assets/app-CaUPGaqM.js ................ ~ 0.05ms
+  2026-07-29 11:20:04 /wave/img/icons/anchor.png ................... ~ 0.27ms
+  2026-07-29 11:20:04 /wave/img/icons/turtle.png ................... ~ 0.44ms
+  2026-07-29 11:20:04 /build/assets/app-75U0MKBP.css ............... ~ 0.71ms
+  2026-07-29 11:20:04 /wave/img/icons/compass.png .................. ~ 0.06ms
+  2026-07-29 11:20:04 /wave/img/icons/lighthouse.png ............... ~ 0.22ms
+  2026-07-29 11:20:05 /wave/img/icons/chest.png .................... ~ 0.37ms
+  2026-07-29 11:20:05 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.58ms
+  2026-07-29 11:20:05 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.66ms
+  2026-07-29 11:20:05 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.40ms
+  2026-07-29 11:20:05 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.19ms
+  2026-07-29 11:20:05 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.12ms
+  2026-07-29 11:20:05 /wave/img/character.png ...................... ~ 0.20ms
+  2026-07-29 11:20:05 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.29ms
+  2026-07-29 11:20:06 /dashboard/prospects ....................... ~ 500.53ms
+  2026-07-29 11:20:06 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.20ms
+  2026-07-29 11:20:06 /build/assets/app-75U0MKBP.css ............... ~ 0.28ms
+  2026-07-29 11:20:06 /build/assets/app-CaUPGaqM.js ................ ~ 0.44ms
+  2026-07-29 11:20:06 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.64ms
+  2026-07-29 11:20:06 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.71ms
+  2026-07-29 11:20:06 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.38ms
+  2026-07-29 11:20:06 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.74ms
+  2026-07-29 11:20:06 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.70ms
+  2026-07-29 11:20:06 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.03ms
+  2026-07-29 11:20:08 /dashboard/templates ......................... ~ 0.11ms
+  2026-07-29 11:20:08 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.09ms
+  2026-07-29 11:20:08 /build/assets/app-CaUPGaqM.js ................ ~ 0.13ms
+  2026-07-29 11:20:08 /build/assets/app-75U0MKBP.css ............... ~ 0.32ms
+  2026-07-29 11:20:08 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.48ms
+  2026-07-29 11:20:08 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.55ms
+  2026-07-29 11:20:08 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.59ms
+  2026-07-29 11:20:08 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.40ms
+  2026-07-29 11:20:08 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.31ms
+  2026-07-29 11:20:08 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.38ms
+  2026-07-29 11:20:09 /dashboard/blueprints ........................ ~ 0.11ms
+  2026-07-29 11:20:09 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.17ms
+  2026-07-29 11:20:09 /build/assets/app-CaUPGaqM.js ................ ~ 0.22ms
+  2026-07-29 11:20:09 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.38ms
+  2026-07-29 11:20:09 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.45ms
+  2026-07-29 11:20:09 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.49ms
+  2026-07-29 11:20:09 /build/assets/app-75U0MKBP.css ............... ~ 0.61ms
+  2026-07-29 11:20:09 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.04ms
+  2026-07-29 11:20:09 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.28ms
+  2026-07-29 11:20:09 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.18ms
+  2026-07-29 11:20:56 /auth/login .................................. ~ 0.12ms
+  2026-07-29 11:20:56 /auth/build/assets/styles.css ................ ~ 0.07ms
+  2026-07-29 11:20:56 /auth/app.css ................................ ~ 0.23ms
+  2026-07-29 11:20:56 /auth/build/assets/scripts.js ................ ~ 0.54ms
+  2026-07-29 11:20:56 /storage/auth/background.jpg ................. ~ 0.85ms
+  2026-07-29 11:20:56 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 1.02ms
+  2026-07-29 11:20:57 /livewire/update ............................. ~ 0.11ms
+  2026-07-29 11:20:59 /livewire/update ........................... ~ 500.52ms
+  2026-07-29 11:21:00 / ............................................ ~ 0.03ms
+  2026-07-29 11:21:00 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.09ms
+  2026-07-29 11:21:00 /build/assets/app-CaUPGaqM.js ................ ~ 0.14ms
+  2026-07-29 11:21:00 /wave/img/icons/anchor.png ................... ~ 0.32ms
+  2026-07-29 11:21:00 /wave/img/icons/turtle.png ................... ~ 0.50ms
+  2026-07-29 11:21:00 /build/assets/app-75U0MKBP.css ............... ~ 0.70ms
+  2026-07-29 11:21:00 /wave/img/icons/compass.png .................. ~ 0.08ms
+  2026-07-29 11:21:00 /wave/img/icons/lighthouse.png ............... ~ 0.23ms
+  2026-07-29 11:21:00 /wave/img/icons/chest.png .................... ~ 0.37ms
+  2026-07-29 11:21:00 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.60ms
+  2026-07-29 11:21:00 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.68ms
+  2026-07-29 11:21:00 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.94ms
+  2026-07-29 11:21:00 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.44ms
+  2026-07-29 11:21:00 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.13ms
+  2026-07-29 11:21:00 /wave/img/character.png ...................... ~ 0.21ms
+  2026-07-29 11:21:00 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.45ms
+  2026-07-29 11:21:01 /dashboard/prospects ......................... ~ 0.11ms
+  2026-07-29 11:21:01 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.08ms
+  2026-07-29 11:21:01 /build/assets/app-CaUPGaqM.js ................ ~ 0.13ms
+  2026-07-29 11:21:01 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.39ms
+  2026-07-29 11:21:01 /build/assets/app-75U0MKBP.css ............... ~ 0.54ms
+  2026-07-29 11:21:01 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.71ms
+  2026-07-29 11:21:01 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.76ms
+  2026-07-29 11:21:01 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.39ms
+  2026-07-29 11:21:01 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.25ms
+  2026-07-29 11:21:01 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.31ms
+  2026-07-29 11:21:03 /dashboard/templates ......................... ~ 0.17ms
+  2026-07-29 11:21:03 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.09ms
+  2026-07-29 11:21:03 /build/assets/app-CaUPGaqM.js ................ ~ 0.13ms
+  2026-07-29 11:21:03 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.27ms
+  2026-07-29 11:21:03 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.33ms
+  2026-07-29 11:21:03 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.38ms
+  2026-07-29 11:21:03 /build/assets/app-75U0MKBP.css ............... ~ 0.48ms
+  2026-07-29 11:21:03 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.08ms
+  2026-07-29 11:21:03 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.16ms
+  2026-07-29 11:21:03 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.24ms
+  2026-07-29 11:21:05 /dashboard/blueprints ........................ ~ 0.11ms
+  2026-07-29 11:21:05 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.07ms
+  2026-07-29 11:21:05 /build/assets/app-CaUPGaqM.js ................ ~ 0.11ms
+  2026-07-29 11:21:05 /build/assets/app-75U0MKBP.css ............... ~ 0.27ms
+  2026-07-29 11:21:05 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.54ms
+  2026-07-29 11:21:05 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.16ms
+  2026-07-29 11:21:05 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.21ms
+  2026-07-29 11:21:05 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.26ms
+  2026-07-29 11:21:05 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.35ms
+  2026-07-29 11:21:05 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.40ms
