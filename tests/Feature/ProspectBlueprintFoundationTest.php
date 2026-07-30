@@ -322,3 +322,65 @@ it('can manually send the next sequence step and move prospect forward', functio
         'message_id' => 'nylas-msg-id-777',
     ]);
 });
+
+it('can complete the new mapped import flow', function () {
+    $this->actingAs($this->user);
+
+    // 1. Check download sample CSV
+    $response = $this->get(route('prospects.import.sample'));
+    $response->assertStatus(200);
+    $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+    $response->assertSee('company_name,contact_name,contact_email');
+
+    // 2. Check import show page
+    $response = $this->get(route('prospects.import.show'));
+    $response->assertStatus(200);
+    $response->assertSee('Import Prospects from CSV');
+
+    // 3. Check upload and redirect to mapping page
+    $csvContent = "Firm Name,Full Name,Email Address,Job,Notes,Country,Size,Source,Event\n" .
+                  "Stark Industries,Tony Stark,tony@stark.com,CEO,Iron Man,USA,100,Outbound,Canton Fair";
+
+    $file = UploadedFile::fake()->createWithContent('prospects_to_map.csv', $csvContent);
+
+    $response = $this->post(route('prospects.import.upload'), [
+        'file' => $file,
+    ]);
+
+    $response->assertStatus(200);
+    $response->assertSee('Map CSV Columns to System Fields');
+    $response->assertSee('Firm Name (Column #1)');
+    $response->assertSee('Full Name (Column #2)');
+
+    // 4. Check process mapping form
+    $tempPath = session('import_temp_path');
+    expect($tempPath)->not->toBeNull();
+
+    $response = $this->post(route('prospects.import.process'), [
+        'mappings' => [
+            'company_name' => '0',
+            'contact_name' => '1',
+            'contact_email' => '2',
+            'contact_role' => '3',
+            'notes' => '4',
+            'country' => '5',
+            'company_size' => '6',
+            'source' => '7',
+            'event' => '8',
+        ],
+    ]);
+
+    $response->assertRedirect(route('prospects.index'));
+
+    $this->assertDatabaseHas('prospects', [
+        'company_name' => 'Stark Industries',
+        'contact_name' => 'Tony Stark',
+        'contact_email' => 'tony@stark.com',
+        'contact_role' => 'CEO',
+        'notes' => 'Iron Man',
+        'country' => 'USA',
+        'company_size' => 100,
+        'source' => 'Outbound',
+        'event' => 'Canton Fair',
+    ]);
+});

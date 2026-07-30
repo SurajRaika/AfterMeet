@@ -42,7 +42,11 @@ Route::middleware('auth')->group(function () {
             'destroy' => 'prospects.destroy',
         ])->except(['show']);
 
+        Route::get('prospects/import', [ProspectImportController::class, 'show'])->name('prospects.import.show');
         Route::post('prospects/import', [ProspectImportController::class, 'import'])->name('prospects.import');
+        Route::post('prospects/import/upload', [ProspectImportController::class, 'upload'])->name('prospects.import.upload');
+        Route::post('prospects/import/process', [ProspectImportController::class, 'process'])->name('prospects.import.process');
+        Route::get('prospects/import/sample', [ProspectImportController::class, 'downloadSample'])->name('prospects.import.sample');
         Route::post('prospects/{id}/send-next-step', [ProspectController::class, 'sendNextStep'])->name('prospects.send-next-step');
         Route::post('prospects/views', [ProspectController::class, 'storeView'])->name('prospects.views.store');
         Route::delete('prospects/views/{id}', [ProspectController::class, 'destroyView'])->name('prospects.views.destroy');
