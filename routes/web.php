@@ -16,6 +16,7 @@ use App\Http\Controllers\NylasController;
 use App\Http\Controllers\NylasWebhookController;
 use App\Http\Controllers\ProspectController;
 use App\Http\Controllers\ProspectImportController;
+use App\Http\Controllers\ProspectViewController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\BlueprintController;
 
@@ -44,6 +45,15 @@ Route::middleware('auth')->group(function () {
 
         Route::post('prospects/import', [ProspectImportController::class, 'import'])->name('prospects.import');
         Route::post('prospects/{id}/send-next-step', [ProspectController::class, 'sendNextStep'])->name('prospects.send-next-step');
+        Route::post('prospects/{id}/update-status', [ProspectController::class, 'updateStatus'])->name('prospects.update-status');
+
+        Route::resource('prospect-views', ProspectViewController::class)->names([
+            'create' => 'prospect-views.create',
+            'store' => 'prospect-views.store',
+            'edit' => 'prospect-views.edit',
+            'update' => 'prospect-views.update',
+            'destroy' => 'prospect-views.destroy',
+        ])->except(['index', 'show']);
 
         Route::resource('templates', TemplateController::class)->names([
             'index' => 'templates.index',

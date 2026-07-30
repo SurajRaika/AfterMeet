@@ -19,14 +19,49 @@ class ProspectController extends Controller
         $tenantId = auth()->user()->organization_id ?? auth()->id();
         $query = Prospect::where('tenant_id', $tenantId)->with('blueprint');
 
-        if ($request->has('status') && $request->status !== '') {
-            $query->where('status', $request->status);
+        $views = \App\Models\ProspectView::where('tenant_id', $tenantId)->get();
+        $activeView = null;
+
+        if ($request->has('view_id') && $request->view_id !== '') {
+            $activeView = \App\Models\ProspectView::where('tenant_id', $tenantId)->find($request->view_id);
+            if ($activeView) {
+                $filters = $activeView->filters ?? [];
+                foreach ($filters as $filter) {
+                    $field = $filter['field'] ?? null;
+                    $operator = $filter['operator'] ?? '=';
+                    $value = $filter['value'] ?? '';
+
+                    if ($field && in_array($field, ['company_name', 'contact_name', 'contact_email', 'contact_role', 'status', 'notes'])) {
+                        if ($operator === 'like') {
+                            $query->where($field, 'like', '%' . $value . '%');
+                        } elseif ($operator === 'not_like') {
+                            $query->where($field, 'not like', '%' . $value . '%');
+                        } else {
+                            $query->where($field, $operator, $value);
+                        }
+                    }
+                }
+
+                if ($activeView->sort_field) {
+                    $sortOrder = $activeView->sort_order ?? 'asc';
+                    $query->orderBy($activeView->sort_field, $sortOrder);
+                } else {
+                    $query->latest();
+                }
+            }
         }
 
-        $prospects = $query->latest()->get();
+        if (!$activeView) {
+            if ($request->has('status') && $request->status !== '') {
+                $query->where('status', $request->status);
+            }
+            $query->latest();
+        }
+
+        $prospects = $query->get();
         $blueprints = Blueprint::where('tenant_id', $tenantId)->get();
 
-        return view('theme::dashboard.prospects.index', compact('prospects', 'blueprints'));
+        return view('theme::dashboard.prospects.index', compact('prospects', 'blueprints', 'views', 'activeView'));
     }
 
     /**
@@ -125,6 +160,29 @@ class ProspectController extends Controller
         ]);
 
         return redirect()->route('prospects.index')->with('success', 'Prospect updated successfully.');
+    }
+
+    /**
+     * Update the status of the specified resource.
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $tenantId = auth()->user()->organization_id ?? auth()->id();
+        $prospect = Prospect::where('tenant_id', $tenantId)->findOrFail($id);
+
+        $request->validate([
+            'status' => 'required|in:new,active,qualified,junk,paused',
+        ]);
+
+        $prospect->update([
+            'status' => $request->status,
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->back()->with('success', 'Prospect status updated successfully.');
     }
 
     /**

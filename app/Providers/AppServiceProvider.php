@@ -40,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(\Illuminate\Routing\UrlGenerator $url): void
     {
-        if ($this->app->environment(['production', 'local'])) {
+        if ($this->app->environment(['production'])) {
         $this->app['request']->server->set('HTTPS', true);
         $url->forceScheme('https');
     }
