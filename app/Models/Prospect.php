@@ -26,11 +26,17 @@ class Prospect extends Model
         'last_sent_at',
         'next_send_at',
         'notes',
+        'stage',
+        'country',
+        'company_size',
+        'source',
+        'event',
     ];
 
     protected $casts = [
         'last_sent_at' => 'datetime',
         'next_send_at' => 'datetime',
+        'company_size' => 'integer',
     ];
 
     /**

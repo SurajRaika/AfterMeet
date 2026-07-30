@@ -51,6 +51,21 @@
                     </div>
 
                     <div>
+                        <label for="stage" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Pipeline Stage</label>
+                        <select name="stage" id="stage" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <option value="New" {{ old('stage', $prospect->stage) === 'New' ? 'selected' : '' }}>New</option>
+                            <option value="Researching" {{ old('stage', $prospect->stage) === 'Researching' ? 'selected' : '' }}>Researching</option>
+                            <option value="Ready to Contact" {{ old('stage', $prospect->stage) === 'Ready to Contact' ? 'selected' : '' }}>Ready to Contact</option>
+                            <option value="Contacted" {{ old('stage', $prospect->stage) === 'Contacted' ? 'selected' : '' }}>Contacted</option>
+                            <option value="Engaged" {{ old('stage', $prospect->stage) === 'Engaged' ? 'selected' : '' }}>Engaged</option>
+                            <option value="Connected" {{ old('stage', $prospect->stage) === 'Connected' ? 'selected' : '' }}>Connected</option>
+                            <option value="Converted" {{ old('stage', $prospect->stage) === 'Converted' ? 'selected' : '' }}>Converted</option>
+                            <option value="Archived" {{ old('stage', $prospect->stage) === 'Archived' ? 'selected' : '' }}>Archived</option>
+                        </select>
+                        @error('stage') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
                         <label for="blueprint_id" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Assigned Blueprint</label>
                         <select name="blueprint_id" id="blueprint_id" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                             <option value="">No Sequence Blueprint</option>
@@ -66,6 +81,30 @@
                         <input type="number" name="current_step_order" id="current_step_order" required value="{{ old('current_step_order', $prospect->current_step_order) }}" min="0" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                         <span class="text-xs text-zinc-400">Step 0 is the first step of the blueprint sequence.</span>
                         @error('current_step_order') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="country" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Country</label>
+                        <input type="text" name="country" id="country" value="{{ old('country', $prospect->country) }}" placeholder="e.g. USA" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                        @error('country') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="company_size" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Company Size</label>
+                        <input type="number" name="company_size" id="company_size" min="0" value="{{ old('company_size', $prospect->company_size) }}" placeholder="e.g. 150" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                        @error('company_size') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="source" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Source</label>
+                        <input type="text" name="source" id="source" value="{{ old('source', $prospect->source) }}" placeholder="e.g. Event, Web, LeadList" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                        @error('source') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="event" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Event Name (if Event source)</label>
+                        <input type="text" name="event" id="event" value="{{ old('event', $prospect->event) }}" placeholder="e.g. Canton Fair" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                        @error('event') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
                 </div>
 

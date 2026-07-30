@@ -50,6 +50,21 @@
                     </div>
 
                     <div>
+                        <label for="stage" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Pipeline Stage</label>
+                        <select name="stage" id="stage" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <option value="New" selected>New</option>
+                            <option value="Researching">Researching</option>
+                            <option value="Ready to Contact">Ready to Contact</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Engaged">Engaged</option>
+                            <option value="Connected">Connected</option>
+                            <option value="Converted">Converted</option>
+                            <option value="Archived">Archived</option>
+                        </select>
+                        @error('stage') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
                         <label for="blueprint_id" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Assigned Blueprint</label>
                         <select name="blueprint_id" id="blueprint_id" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                             <option value="">No Sequence Blueprint</option>
@@ -58,6 +73,30 @@
                             @endforeach
                         </select>
                         @error('blueprint_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="country" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Country</label>
+                        <input type="text" name="country" id="country" placeholder="e.g. USA" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                        @error('country') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="company_size" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Company Size</label>
+                        <input type="number" name="company_size" id="company_size" min="0" placeholder="e.g. 150" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                        @error('company_size') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="source" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Source</label>
+                        <input type="text" name="source" id="source" placeholder="e.g. Event, Web, LeadList" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                        @error('source') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label for="event" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Event Name (if Event source)</label>
+                        <input type="text" name="event" id="event" placeholder="e.g. Canton Fair" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                        @error('event') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
