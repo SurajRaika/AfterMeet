@@ -6,16 +6,10 @@
                 description="Manage your email templates with placeholders like {company_name} and {contact_name}."
                 :border="false"
             />
-            <div class="flex items-center gap-2">
-                <a href="{{ route('templates.ai-builder') }}" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 rounded-lg shadow transition-colors">
-                    <x-phosphor-sparkle-duotone class="w-4 h-4" />
-                    AI Template Builder
-                </a>
-                <a href="{{ route('templates.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow transition-colors">
-                    <x-phosphor-plus-bold class="w-4 h-4" />
-                    Create Template
-                </a>
-            </div>
+            <a href="{{ route('templates.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow transition-colors">
+                <x-phosphor-plus-bold class="w-4 h-4" />
+                Create Template
+            </a>
         </div>
 
         @if(session('success'))

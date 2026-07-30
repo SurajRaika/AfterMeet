@@ -16,9 +16,39 @@ beforeEach(function () {
     // Clear Spatie permission cache
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
-    // Delete existing roles and users to prevent collision
-    DB::table('roles')->delete();
+    // Delete existing tables in a safe order to prevent any SQLite foreign key constraint violations
+    DB::table('email_attachments')->delete();
+    DB::table('email_messages')->delete();
+    DB::table('email_threads')->delete();
+    DB::table('nylas_accounts')->delete();
+    DB::table('prospect_step_logs')->delete();
+    DB::table('blueprint_steps')->delete();
+    DB::table('prospects')->delete();
+    DB::table('blueprints')->delete();
+    DB::table('templates')->delete();
+    DB::table('social_provider_user')->delete();
+    DB::table('changelog_user')->delete();
+    DB::table('api_keys')->delete();
+    DB::table('posts')->delete();
+    DB::table('pages')->delete();
+    DB::table('form_entries')->delete();
+    DB::table('activity_logs')->delete();
+    DB::table('subscriptions')->delete();
+    DB::table('plans')->delete();
+    DB::table('model_has_roles')->delete();
+    DB::table('model_has_permissions')->delete();
+    DB::table('role_has_permissions')->delete();
+    DB::table('invitations')->delete();
+    DB::table('themes')->delete();
+    DB::table('categories')->delete();
+    DB::table('changelogs')->delete();
+    DB::table('settings')->delete();
+
+    DB::statement('PRAGMA foreign_keys = OFF;');
+    DB::table('organizations')->delete();
     DB::table('users')->delete();
+    DB::table('roles')->delete();
+    DB::statement('PRAGMA foreign_keys = ON;');
 
     $roleAdmin = \Spatie\Permission\Models\Role::create([
         'id' => 1,
@@ -156,9 +186,32 @@ test('responds with 200 for all auth routes', function ($url) {
     $response->assertStatus(200);
 })->with('authroutes');
 
-test('templates.ai-builder returns 200 for authenticated user', function () {
+test('templates.create returns 200 for authenticated user', function () {
     $user = \App\Models\User::find(1);
     $this->actingAs($user);
-    $response = $this->get(route('templates.ai-builder'));
+    $response = $this->get(route('templates.create'));
     $response->assertStatus(200);
+});
+
+test('templates.generate-ai returns 200 for authenticated user', function () {
+    $user = \App\Models\User::find(1);
+    $this->actingAs($user);
+
+    $prospect = \App\Models\Prospect::create([
+        'tenant_id' => 1,
+        'company_name' => 'Acme Inc',
+        'contact_name' => 'John Doe',
+        'contact_email' => 'john@example.com',
+    ]);
+
+    $response = $this->postJson(route('templates.generate-ai'), [
+        'subject' => 'Meeting at {{company_name}}',
+        'body' => 'Hello {{contact_name}}',
+        'prospect_id' => (string) $prospect->id,
+        'creativity' => 'balanced',
+        'active_fields' => ['company_name', 'contact_name'],
+    ]);
+
+    $response->assertStatus(200);
+    $response->assertJsonStructure(['subject', 'message', 'strategyInsight']);
 });
