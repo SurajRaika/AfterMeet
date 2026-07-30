@@ -23,6 +23,7 @@
         "guzzlehttp/guzzle": "^7.8",
         "intervention/image": "^3.11",
         "lab404/laravel-impersonate": "^1.7.5",
+        "laravel/ai": "^0.10.1",
         "laravel/folio": "^1.1",
         "laravel/framework": "^12.18",
         "laravel/pail": "^1.2.2",

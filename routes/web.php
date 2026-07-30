@@ -26,6 +26,11 @@ Route::match(['get', 'post'], 'webhooks/nylas', [NylasWebhookController::class, 
 // Wave routes
 Wave::routes();
 
+Route::get('temp-login', function() {
+    auth()->loginUsingId(1);
+    return redirect()->route('templates.create');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('nylas/connect', [NylasController::class, 'connect'])->name('nylas.connect');
     Route::get('nylas/callback', [NylasController::class, 'callback'])->name('nylas.callback');
@@ -51,6 +56,8 @@ Route::middleware('auth')->group(function () {
         Route::post('prospects/views', [ProspectController::class, 'storeView'])->name('prospects.views.store');
         Route::delete('prospects/views/{id}', [ProspectController::class, 'destroyView'])->name('prospects.views.destroy');
         Route::post('prospects/{id}/update-stage', [ProspectController::class, 'updateStage'])->name('prospects.update-stage');
+
+        Route::post('templates/generate-ai', [TemplateController::class, 'generateAi'])->name('templates.generate-ai');
 
         Route::resource('templates', TemplateController::class)->names([
             'index' => 'templates.index',

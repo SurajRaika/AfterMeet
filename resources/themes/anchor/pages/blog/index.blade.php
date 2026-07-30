@@ -1,10 +1,12 @@
 <?php
     use function Laravel\Folio\{name};
     name('blog');
+?>
 
+@php
     $posts = \Wave\Post::where('status', 'PUBLISHED')->orderBy('created_at', 'DESC')->paginate(6);
     $categories = \Wave\Category::all();
-?>
+@endphp
 
 <x-layouts.marketing
     :seo="[

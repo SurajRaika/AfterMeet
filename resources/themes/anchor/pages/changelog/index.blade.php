@@ -1,12 +1,14 @@
 <?php
     use function Laravel\Folio\{name};
     name('changelogs');
+?>
 
+@php
     $logs = \Wave\Changelog::orderBy('created_at', 'desc')->paginate(10);
 
     // use a dynamic layout based on whether or not the user is authenticated
     $layout = ((auth()->guest()) ? 'layouts.marketing' : 'layouts.app');
-?>
+@endphp
 
 <x-dynamic-component 
 	:component="$layout"

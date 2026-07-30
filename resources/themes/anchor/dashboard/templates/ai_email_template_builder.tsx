@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createRoot } from 'react-dom/client';
 
 const SparklesIcon = ({ className = "w-4 h-4" }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,18 +48,6 @@ const BrainIcon = ({ className = "w-4 h-4" }) => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
   </svg>
 );
-
-const CRM_FIELDS_MASTER = [
-  { id: 'contact_name', label: 'Contact Name', tag: '{{contact_name}}', fillRate: '100% full', tier: 'Standard', activeDefault: true },
-  { id: 'company_name', label: 'Company Name', tag: '{{company_name}}', fillRate: '100% full', tier: 'Standard', activeDefault: true },
-  { id: 'event_name', label: 'Event Name', tag: '{{event_name}}', fillRate: '98% full', tier: 'Standard', activeDefault: true },
-  { id: 'product_interest', label: 'Product Interest', tag: '{{product_interest}}', fillRate: '85% full', tier: '✨ High-Impact Feed', activeDefault: true },
-  { id: 'industry', label: 'Industry Sector', tag: '{{industry}}', fillRate: '92% full', tier: 'Standard', activeDefault: false },
-  { id: 'meeting_notes', label: 'Meeting Notes', tag: '{{meeting_notes}}', fillRate: '78% full', tier: '✨ High-Impact Feed', activeDefault: false },
-  { id: 'recent_news', label: 'Recent News', tag: '{{recent_news}}', fillRate: '64% full', tier: '✨ High-Impact Feed', activeDefault: false },
-  { id: 'your_company', label: 'Your Company', tag: '{{your_company}}', fillRate: '100% full', tier: 'Standard', activeDefault: true },
-  { id: 'job_title', label: 'Job Title', tag: '{{job_title}}', fillRate: '95% full', tier: 'Standard', activeDefault: false },
-];
 
 const MOCK_PROSPECTS = [
   {
@@ -139,19 +128,91 @@ const PRESETS = [
 ];
 
 export default function App() {
+  // Dynamically build CRM Fields based on window.prospectFields listing
+  const CRM_FIELDS = useMemo(() => {
+    const fields = (window as any).prospectFields || [];
+
+    const standardDescriptors: Record<string, { label: string, tag: string, fillRate: string, tier: string }> = {
+      contact_name: { label: 'Contact Name', tag: '{{contact_name}}', fillRate: '100% full', tier: 'Standard' },
+      company_name: { label: 'Company Name', tag: '{{company_name}}', fillRate: '100% full', tier: 'Standard' },
+      contact_email: { label: 'Contact Email', tag: '{{contact_email}}', fillRate: '100% full', tier: 'Standard' },
+      contact_role: { label: 'Contact Role', tag: '{{contact_role}}', fillRate: '95% full', tier: 'Standard' },
+      notes: { label: 'Notes / Meeting Notes', tag: '{{notes}}', fillRate: '80% full', tier: '✨ High-Impact Feed' },
+      status: { label: 'Status', tag: '{{status}}', fillRate: '100% full', tier: 'Standard' },
+    };
+
+    const excluded = ['id', 'tenant_id', 'blueprint_id', 'current_step_order', 'sent_without_correct_condition', 'last_sent_at', 'next_send_at', 'created_at', 'updated_at'];
+
+    const mapped = fields
+      .filter((col: string) => !excluded.includes(col))
+      .map((col: string) => {
+        if (standardDescriptors[col]) {
+          return {
+            id: col,
+            ...standardDescriptors[col],
+            activeDefault: true
+          };
+        }
+        return {
+          id: col,
+          label: col.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          tag: `{{${col}}}`,
+          fillRate: '100% full',
+          tier: 'Standard',
+          activeDefault: true
+        };
+      });
+
+    if (mapped.length === 0) {
+      return [
+        { id: 'contact_name', label: 'Contact Name', tag: '{{contact_name}}', fillRate: '100% full', tier: 'Standard', activeDefault: true },
+        { id: 'company_name', label: 'Company Name', tag: '{{company_name}}', fillRate: '100% full', tier: 'Standard', activeDefault: true },
+        { id: 'contact_email', label: 'Contact Email', tag: '{{contact_email}}', fillRate: '100% full', tier: 'Standard', activeDefault: true },
+        { id: 'contact_role', label: 'Contact Role', tag: '{{contact_role}}', fillRate: '95% full', tier: 'Standard', activeDefault: true },
+        { id: 'notes', label: 'Notes / Meeting Notes', tag: '{{notes}}', fillRate: '80% full', tier: '✨ High-Impact Feed', activeDefault: true },
+        { id: 'status', label: 'Status', tag: '{{status}}', fillRate: '100% full', tier: 'Standard', activeDefault: false },
+      ];
+    }
+
+    return mapped;
+  }, []);
+
+  const prospectList = useMemo(() => {
+    const real = (window as any).realProspects || [];
+    const mappedReal = real.map((p: any) => ({
+      id: `real_${p.id}`,
+      contact_name: p.contact_name || 'N/A',
+      company_name: p.company_name || 'N/A',
+      contact_email: p.contact_email || 'N/A',
+      contact_role: p.contact_role || 'N/A',
+      status: p.status || 'N/A',
+      notes: p.notes || 'N/A',
+      is_real: true,
+    }));
+
+    const mappedMocks = MOCK_PROSPECTS.map(p => ({
+      ...p,
+      id: `mock_${p.id}`
+    }));
+
+    return [...mappedReal, ...mappedMocks];
+  }, []);
+
   const [templateTitle, setTemplateTitle] = useState(PRESETS[0].title);
   const [subject, setSubject] = useState(PRESETS[0].subject);
   const [body, setBody] = useState(PRESETS[0].body);
 
   // Active CRM fields selected in modal mapping
   const [activeFieldIds, setActiveFieldIds] = useState(
-    CRM_FIELDS_MASTER.filter(f => f.activeDefault).map(f => f.id)
+    CRM_FIELDS.filter(f => f.activeDefault).map(f => f.id)
   );
 
   // UI state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(true); // Welcome modal active on initial load
-  const [selectedProspectId, setSelectedProspectId] = useState(1);
+  const [selectedProspectId, setSelectedProspectId] = useState(
+    prospectList.length > 0 ? prospectList[0].id : 'mock_1'
+  );
   const [generationMode, setGenerationMode] = useState('dynamic'); // 'dynamic' | 'direct'
   const [creativity, setCreativity] = useState('balanced'); // 'strict' | 'balanced' | 'creative'
   
@@ -162,121 +223,81 @@ export default function App() {
   const [saveNotification, setSaveNotification] = useState('');
 
   // Cached dynamic AI generations per prospect
-  const [dynamicCache, setDynamicCache] = useState({});
+  const [dynamicCache, setDynamicCache] = useState<Record<string, any>>({});
 
   const currentProspect = useMemo(
-    () => MOCK_PROSPECTS.find(p => p.id === Number(selectedProspectId)) || MOCK_PROSPECTS[0],
-    [selectedProspectId]
+    () => prospectList.find(p => String(p.id) === String(selectedProspectId)) || prospectList[0],
+    [selectedProspectId, prospectList]
   );
 
   const directSubject = useMemo(() => {
     let result = subject;
-    CRM_FIELDS_MASTER.forEach(field => {
+    CRM_FIELDS.forEach(field => {
       const val = currentProspect[field.id] || `[${field.label}]`;
       const regex = new RegExp(`{{\\s*${field.id}\\s*}}`, 'g');
       result = result.replace(regex, val);
     });
     return result;
-  }, [subject, currentProspect]);
+  }, [subject, currentProspect, CRM_FIELDS]);
 
   const directBody = useMemo(() => {
     let result = body;
-    CRM_FIELDS_MASTER.forEach(field => {
+    CRM_FIELDS.forEach(field => {
       const val = currentProspect[field.id] || `[${field.label}]`;
       const regex = new RegExp(`{{\\s*${field.id}\\s*}}`, 'g');
       result = result.replace(regex, val);
     });
     return result;
-  }, [body, currentProspect]);
+  }, [body, currentProspect, CRM_FIELDS]);
 
-  const generateAIDynamicVariation = async (prospect, customCreativity = creativity) => {
+  const generateAIDynamicVariation = async (prospect: any, customCreativity = creativity) => {
     setIsGenerating(true);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     
-    const mappedContext = activeFieldIds
-      .map(id => {
-        const f = CRM_FIELDS_MASTER.find(item => item.id === id);
-        return f ? `${f.label} (${f.tag}): ${prospect[id] || 'N/A'}` : null;
-      })
-      .filter(Boolean)
-      .join('\n');
-
-    const systemPrompt = `You are a world-class B2B AI Agent Email Strategist.
-Your goal is to re-synthesize a reference email into a bespoke, high-converting personalized variation for a specific prospect.
-
-CRITICAL INSTRUCTIONS:
-1. Do NOT write boilerplate AI fluff or generic sales talk.
-2. Maintain the intent, CTA, and overall core message of the Reference Email, but write with natural human tone.
-3. Fluidly integrate relevant details from the CRM Prospect Context (such as meeting notes, news, or product interest).
-4. Match creativity level:
-   - "strict": Minimal modifications, exact intent, strictly natural phrasing adjustments.
-   - "balanced": Smart rewrites, natural phrasing, subtle context inclusion.
-   - "creative": Engaging hook adaptation, tailored executive angle, high personalization.
-5. Return ONLY a valid JSON object matching this exact structure:
-{
-  "subject": "The personalized subject line",
-  "message": "The personalized body email body text",
-  "strategyInsight": "A 1-2 sentence breakdown explaining your copywriting strategy (e.g. 'Used meeting context re: bottleneck speeds to create an executive hook.')"
-}`;
-
-    const userPrompt = `CREATIVITY LEVEL: ${customCreativity.toUpperCase()}
-
-REFERENCE SUBJECT:
-${subject}
-
-REFERENCE BODY:
-${body}
-
-CRM PROSPECT CONTEXT DATA:
-${mappedContext}`;
-
     try {
-      const apiKey = "";
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
-      const payload = {
-        contents: [{ parts: [{ text: userPrompt }] }],
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              subject: { type: "STRING" },
-              message: { type: "STRING" },
-              strategyInsight: { type: "STRING" }
-            },
-            propertyOrdering: ["subject", "message", "strategyInsight"]
-          }
-        }
-      };
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/dashboard/templates/generate-ai', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({
+          subject: subject,
+          body: body,
+          prospect_id: prospect.id,
+          creativity: customCreativity,
+          active_fields: activeFieldIds,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      if (rawJson) {
-        const parsed = JSON.parse(rawJson);
+      if (response.ok) {
+        const data = await response.json();
         setDynamicCache(prev => ({
           ...prev,
-          [`${prospect.id}_${customCreativity}`]: parsed
+          [`${prospect.id}_${customCreativity}`]: data
         }));
       } else {
-        throw new Error("Empty response structure");
+        throw new Error(`API error: ${response.status}`);
       }
     } catch (err) {
       console.warn("Gemini API call fallback to intelligent client template engine:", err);
-      const fallbackSubject = `${directSubject} — Tailored for ${prospect.company_name}`;
-      const fallbackBody = `Hi ${prospect.contact_name},\n\nIt was great catching up during ${prospect.event_name}. Following our notes regarding ${prospect.product_interest} (${prospect.meeting_notes || 'operational goals'}), I wanted to reconnect.\n\nAt ${prospect.your_company}, we've helped similar leaders in ${prospect.industry || 'your industry'} eliminate workflow friction.\n\nWould you be open to a brief 10-minute call this coming week to discuss our approach for ${prospect.company_name}?\n\nBest regards,\nAlex Vance`;
-      const fallbackInsight = `Incorporated meeting context re: ${prospect.product_interest}. Formulated tailored executive hook for ${prospect.company_name}.`;
+
+      const company = prospect.company_name || 'your company';
+      const contact = prospect.contact_name || 'there';
+      const role = prospect.contact_role || prospect.job_title || 'VP';
+      const notes = prospect.notes || prospect.meeting_notes || '';
+
+      let fallbackSubject = subject;
+      CRM_FIELDS.forEach(field => {
+        const val = prospect[field.id] || '';
+        const regex = new RegExp(`{{\\s*${field.id}\\s*}}`, 'g');
+        fallbackSubject = fallbackSubject.replace(regex, val);
+      });
+      fallbackSubject = `${fallbackSubject} — Tailored for ${company}`;
+
+      const fallbackBody = `Hi ${contact},\n\nIt was great connecting. Following up on your role as ${role} at ${company}, I wanted to reach out regarding our automation solutions.\n\n${notes ? "I noted from our context: " + notes + "\n\n" : ""}Would you be open to a quick 10-minute call next week to discuss how we can help ${company}?\n\nBest regards,\nAlex Vance`;
+      const fallbackInsight = `Incorporated prospect profile as ${role} at ${company}. Generated personalized hook.`;
 
       setDynamicCache(prev => ({
         ...prev,
@@ -293,40 +314,31 @@ ${mappedContext}`;
 
   const handlePolishEmail = async () => {
     setIsPolishing(true);
-    const systemPrompt = "You are a professional B2B email editor. Polish the user's reference email text to make it conciser, punchier, and highly engaging while keeping all template tags intact (like {{contact_name}}). Return a JSON object with keys 'subject' and 'body'.";
-    const userPrompt = `Subject: ${subject}\n\nBody:\n${body}`;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
     try {
-      const apiKey = "";
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
-      const payload = {
-        contents: [{ parts: [{ text: userPrompt }] }],
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              subject: { type: "STRING" },
-              body: { type: "STRING" }
-            },
-            propertyOrdering: ["subject", "body"]
-          }
-        }
-      };
-
-      const res = await fetch(apiUrl, {
+      const response = await fetch('/dashboard/templates/generate-ai', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({
+          subject: subject,
+          body: body,
+          prospect_id: currentProspect.id,
+          creativity: 'creative',
+          active_fields: activeFieldIds,
+        }),
       });
-      const data = await res.json();
-      const resultText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (resultText) {
-        const parsed = JSON.parse(resultText);
-        if (parsed.subject) setSubject(parsed.subject);
-        if (parsed.body) setBody(parsed.body);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.subject) setSubject(data.subject);
+        if (data.message) setBody(data.message);
+      } else {
+        throw new Error("Polish failed");
       }
     } catch (e) {
       console.warn("Polish fallback:", e);
@@ -369,7 +381,7 @@ ${mappedContext}`;
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleApplyPreset = (preset) => {
+  const handleApplyPreset = (preset: any) => {
     setTemplateTitle(preset.title);
     setSubject(preset.subject);
     setBody(preset.body);
@@ -377,11 +389,11 @@ ${mappedContext}`;
     setIsWelcomeModalOpen(false); // Close welcome popup
   };
 
-  const insertTagAtCursor = (tag) => {
+  const insertTagAtCursor = (tag: string) => {
     setBody(prev => prev + ` ${tag} `);
   };
 
-  const toggleFieldActive = (fieldId) => {
+  const toggleFieldActive = (fieldId: string) => {
     setActiveFieldIds(prev => 
       prev.includes(fieldId) 
         ? prev.filter(id => id !== fieldId)
@@ -396,9 +408,38 @@ ${mappedContext}`;
     setDynamicCache({});
   };
 
-  const handleSaveTemplate = () => {
-    setSaveNotification('Template saved successfully!');
-    setTimeout(() => setSaveNotification(''), 3000);
+  const handleSaveTemplate = async () => {
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+      const response = await fetch('/dashboard/templates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({
+          name: templateTitle || 'Untitled Email Template',
+          subject: subject,
+          body: body,
+        }),
+      });
+
+      if (response.ok) {
+        setSaveNotification('Template saved successfully! Redirecting...');
+        setTimeout(() => {
+          window.location.href = '/dashboard/templates';
+        }, 1500);
+      } else {
+        const errorData = await response.json();
+        console.error('Error details:', errorData);
+        alert('Failed to save template: ' + (errorData.message || 'Unknown error'));
+      }
+    } catch (error: any) {
+      console.error('Error saving template:', error);
+      alert('Error saving template: ' + error.message);
+    }
   };
 
   return (
@@ -442,6 +483,13 @@ ${mappedContext}`;
             >
               Clear
             </button>
+
+            <a
+              href="/dashboard/templates"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
+            >
+              Cancel
+            </a>
 
             <button
               onClick={handleSaveTemplate}
@@ -505,7 +553,7 @@ ${mappedContext}`;
             <div className="flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
               <div className="flex items-center space-x-2 text-xs text-slate-700 font-medium">
                 <DatabaseIcon className="w-4 h-4 text-indigo-600" />
-                <span>{CRM_FIELDS_MASTER.length} Native CRM Fields Available</span>
+                <span>{CRM_FIELDS.length} Native CRM Fields Available</span>
               </div>
 
               <button
@@ -521,7 +569,7 @@ ${mappedContext}`;
                 Active Mapped Variable Chips ({activeFieldIds.length} Active):
               </span>
               <div className="flex flex-wrap gap-2">
-                {CRM_FIELDS_MASTER.map((field) => {
+                {CRM_FIELDS.map((field) => {
                   const isActive = activeFieldIds.includes(field.id);
                   return (
                     <button
@@ -596,7 +644,7 @@ ${mappedContext}`;
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {activeFieldIds.map(id => {
-                  const field = CRM_FIELDS_MASTER.find(f => f.id === id);
+                  const field = CRM_FIELDS.find(f => f.id === id);
                   if (!field) return null;
                   return (
                     <button
@@ -640,9 +688,9 @@ ${mappedContext}`;
                   onChange={(e) => setSelectedProspectId(e.target.value)}
                   className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-indigo-600 focus:bg-white w-full sm:w-auto cursor-pointer shadow-2xs"
                 >
-                  {MOCK_PROSPECTS.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      #{p.id}: {p.contact_name} ({p.company_name})
+                  {prospectList.map((p) => (
+                    <option key={String(p.id)} value={String(p.id)}>
+                      {p.is_real ? `👤 [Real] ${p.contact_name} (${p.company_name})` : `✨ [Demo] ${p.contact_name} (${p.company_name})`}
                     </option>
                   ))}
                 </select>
@@ -937,7 +985,7 @@ ${mappedContext}`;
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {CRM_FIELDS_MASTER.map((f) => {
+                  {CRM_FIELDS.map((f) => {
                     const isChecked = activeFieldIds.includes(f.id);
                     return (
                       <tr
@@ -983,7 +1031,7 @@ ${mappedContext}`;
             {/* Modal Footer */}
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
               <span className="text-xs text-slate-500 font-medium">
-                {activeFieldIds.length} of {CRM_FIELDS_MASTER.length} fields active
+                {activeFieldIds.length} of {CRM_FIELDS.length} fields active
               </span>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -999,4 +1047,13 @@ ${mappedContext}`;
 
     </div>
   );
+}
+
+// Mount React component to DOM
+if (typeof document !== 'undefined') {
+  const container = document.getElementById('ai-email-template-builder-root');
+  if (container) {
+    const root = createRoot(container);
+    root.render(<App />);
+  }
 }
