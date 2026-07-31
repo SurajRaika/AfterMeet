@@ -13,6 +13,66 @@ use Illuminate\Http\Request;
 class ProspectController extends Controller
 {
     /**
+     * Show the timeline of outreach for a prospect.
+     */
+    public function timeline($id)
+    {
+        $tenantId = auth()->user()->organization_id ?? auth()->id();
+        $prospect = Prospect::where('tenant_id', $tenantId)->findOrFail($id);
+
+        // 1. Get automated step logs
+        $stepLogs = ProspectStepLog::where('prospect_id', $prospect->id)
+            ->with(['blueprintStep.template'])
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'type' => 'ai_automated',
+                    'timestamp' => $log->sent_at,
+                    'subject' => $log->blueprintStep->template->subject ?? 'Automated Outreach',
+                    'body' => $log->blueprintStep->template->body ?? '',
+                    'message_id' => $log->message_id,
+                    'step_order' => $log->blueprintStep->step_order ?? 0,
+                    'template_name' => $log->blueprintStep->template->name ?? 'Unknown Template',
+                ];
+            });
+
+        // 2. Get local email messages synced from Nylas matching prospect's contact email
+        $emails = \App\Models\EmailMessage::where(function ($query) use ($prospect) {
+                $query->where('from_email', $prospect->contact_email)
+                      ->orWhere('to', 'like', '%' . $prospect->contact_email . '%');
+            })
+            ->get()
+            ->map(function ($email) use ($stepLogs, $prospect) {
+                // Determine if this email matches one of our automated sends
+                $isAutomated = $stepLogs->contains(function ($log) use ($email) {
+                    return $log['message_id'] === $email->nylas_message_id;
+                });
+
+                if ($isAutomated) {
+                    return null; // Skip duplicate mapping of automated logs
+                }
+
+                $isIncoming = strtolower($email->from_email) === strtolower($prospect->contact_email);
+
+                return [
+                    'type' => $isIncoming ? 'prospect_reply' : 'user_manual',
+                    'timestamp' => $email->received_at ?? $email->created_at,
+                    'subject' => $email->subject ?? 'No Subject',
+                    'body' => $email->body_html ?? $email->body_snippet ?? '',
+                    'message_id' => $email->nylas_message_id,
+                    'from_email' => $email->from_email,
+                    'from_name' => $email->from_name,
+                ];
+            })
+            ->filter();
+
+        // 3. Merge and sort chronologically
+        $events = $stepLogs->concat($emails)->sortBy('timestamp')->values();
+
+        return view('theme::dashboard.prospects.timeline', compact('prospect', 'events'));
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)

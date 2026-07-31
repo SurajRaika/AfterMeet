@@ -141,6 +141,8 @@
                         @endif
 
                         <span class="text-zinc-200 dark:text-zinc-800">|</span>
+                        <a href="{{ route('prospects.timeline', $prospect->id) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors font-semibold" title="View outreach timeline tracking">Timeline</a>
+                        <span class="text-zinc-200 dark:text-zinc-800">|</span>
                         <a href="{{ route('prospects.edit', $prospect->id) }}" class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-300 transition-colors">Edit</a>
                         <span class="text-zinc-200 dark:text-zinc-800">|</span>
                         <button type="button" wire:click="deleteProspect({{ $prospect->id }})" wire:confirm="Are you sure you want to delete this prospect?" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors">Delete</button>

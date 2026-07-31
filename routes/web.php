@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
 
     // Dashboard Prospect and Blueprint Foundation
     Route::prefix('dashboard')->group(function () {
+        Route::get('prospects/{id}/timeline', [ProspectController::class, 'timeline'])->name('prospects.timeline');
+
         Route::resource('prospects', ProspectController::class)->names([
             'index' => 'prospects.index',
             'create' => 'prospects.create',

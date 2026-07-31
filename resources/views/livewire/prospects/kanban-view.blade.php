@@ -96,6 +96,10 @@
                                         </button>
                                     @endif
                                     <span class="text-zinc-300 dark:text-zinc-700 text-[10px]">|</span>
+                                    <a href="{{ route('prospects.timeline', $prospect->id) }}" class="text-[10px] text-indigo-600 hover:underline font-semibold" title="View outreach timeline tracking">
+                                        Timeline
+                                    </a>
+                                    <span class="text-zinc-300 dark:text-zinc-700 text-[10px]">|</span>
                                     <a href="{{ route('prospects.edit', $prospect->id) }}" class="text-[10px] text-zinc-500 hover:underline">
                                         Edit
                                     </a>
