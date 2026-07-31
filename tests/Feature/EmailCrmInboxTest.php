@@ -488,3 +488,175 @@ it('triggers email sync for up to 10 messages from Nylas account on user login',
     expect($msg1->subject)->toBe('Welcome message 1');
     expect($msg1->body_html)->toBe('<p>Hello user 1</p>');
 });
+
+it('prevents an authenticated user from viewing or selecting another user email thread', function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
+
+    $account1 = NylasAccount::create([
+        'user_id' => $user1->id,
+        'grant_id' => 'grant-u1',
+        'email' => 'u1@example.com',
+    ]);
+
+    $account2 = NylasAccount::create([
+        'user_id' => $user2->id,
+        'grant_id' => 'grant-u2',
+        'email' => 'u2@example.com',
+    ]);
+
+    $thread1 = EmailThread::create([
+        'nylas_thread_id' => 'th-u1',
+        'nylas_account_id' => $account1->id,
+        'subject' => 'Secret User1 Proposal',
+        'last_message_at' => now(),
+    ]);
+
+    EmailMessage::create([
+        'nylas_message_id' => 'msg-u1',
+        'email_thread_id' => $thread1->id,
+        'nylas_account_id' => $account1->id,
+        'from_email' => 'client-u1@example.com',
+        'to' => [['email' => 'u1@example.com']],
+        'subject' => 'Secret User1 Proposal',
+        'body_snippet' => 'Hello user 1',
+        'is_draft' => false,
+        'received_at' => now(),
+    ]);
+
+    $thread2 = EmailThread::create([
+        'nylas_thread_id' => 'th-u2',
+        'nylas_account_id' => $account2->id,
+        'subject' => 'Secret User2 Proposal',
+        'last_message_at' => now(),
+    ]);
+
+    EmailMessage::create([
+        'nylas_message_id' => 'msg-u2',
+        'email_thread_id' => $thread2->id,
+        'nylas_account_id' => $account2->id,
+        'from_email' => 'client-u2@example.com',
+        'to' => [['email' => 'u2@example.com']],
+        'subject' => 'Secret User2 Proposal',
+        'body_snippet' => 'Hello user 2',
+        'is_draft' => false,
+        'received_at' => now(),
+    ]);
+
+    // Log in as User 1
+    $this->actingAs($user1);
+
+    // Verify User 1 cannot see thread 2 in dashboard inbox list
+    Volt::test('dashboard.inbox')
+        ->assertSee('Secret User1 Proposal')
+        ->assertDontSee('Secret User2 Proposal')
+        ->call('selectThread', $thread2->id)
+        ->assertSet('selectedThreadId', null);
+
+    // Verify same restriction for /email page
+    Volt::test('email')
+        ->assertSee('Secret User1 Proposal')
+        ->assertDontSee('Secret User2 Proposal')
+        ->call('selectThread', $thread2->id)
+        ->assertSet('selectedThreadId', null);
+});
+
+it('prevents an authenticated user from sending an email on behalf of another user connected account', function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
+
+    $account2 = NylasAccount::create([
+        'user_id' => $user2->id,
+        'grant_id' => 'grant-u2',
+        'email' => 'u2@example.com',
+    ]);
+
+    // Log in as User 1
+    $this->actingAs($user1);
+
+    Volt::test('dashboard.inbox')
+        ->set('selectedAccountId', (string) $account2->id)
+        ->set('toEmail', 'client@example.com')
+        ->set('composeSubject', 'Malicious Send')
+        ->set('composeBody', 'Sending using another user account')
+        ->call('sendEmail')
+        ->assertHasErrors(['selectedAccountId']);
+
+    Volt::test('email')
+        ->set('selectedAccountId', (string) $account2->id)
+        ->set('toEmail', 'client@example.com')
+        ->set('composeSubject', 'Malicious Send')
+        ->set('composeBody', 'Sending using another user account')
+        ->call('sendEmail')
+        ->assertHasErrors(['selectedAccountId']);
+});
+
+it('restricts emails on the prospect timeline to the active organization accounts', function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create(); // Second tenant/user
+
+    $account1 = NylasAccount::create([
+        'user_id' => $user1->id,
+        'grant_id' => 'grant-tenant1',
+        'email' => 't1@example.com',
+    ]);
+
+    $account2 = NylasAccount::create([
+        'user_id' => $user2->id,
+        'grant_id' => 'grant-tenant2',
+        'email' => 't2@example.com',
+    ]);
+
+    // Create a prospect for both users with the exact same contact email
+    $prospect1 = \App\Models\Prospect::create([
+        'tenant_id' => $user1->id,
+        'company_name' => 'Acme',
+        'contact_name' => 'John Doe',
+        'contact_email' => 'johndoe@shared.com',
+        'status' => 'active',
+    ]);
+
+    $prospect2 = \App\Models\Prospect::create([
+        'tenant_id' => $user2->id,
+        'company_name' => 'Globex',
+        'contact_name' => 'John Doe',
+        'contact_email' => 'johndoe@shared.com',
+        'status' => 'active',
+    ]);
+
+    // Sync an email to user 1's account
+    EmailMessage::create([
+        'nylas_message_id' => 'msg-for-u1',
+        'nylas_account_id' => $account1->id,
+        'from_email' => 'johndoe@shared.com',
+        'to' => [['email' => 't1@example.com']],
+        'subject' => 'Acme Discussion Topic',
+        'body_snippet' => 'Private Acme Content',
+        'received_at' => now(),
+    ]);
+
+    // Sync an email to user 2's account
+    EmailMessage::create([
+        'nylas_message_id' => 'msg-for-u2',
+        'nylas_account_id' => $account2->id,
+        'from_email' => 'johndoe@shared.com',
+        'to' => [['email' => 't2@example.com']],
+        'subject' => 'Globex Discussion Topic',
+        'body_snippet' => 'Private Globex Content',
+        'received_at' => now(),
+    ]);
+
+    // Log in as User 1 and inspect Prospect 1's timeline
+    $this->actingAs($user1);
+    $response1 = $this->get(route('prospects.timeline', $prospect1->id));
+    $response1->assertStatus(200);
+    $response1->assertSee('Acme Discussion Topic');
+    $response1->assertDontSee('Globex Discussion Topic');
+
+    // Log in as User 2 and inspect Prospect 2's timeline
+    $this->actingAs($user2);
+    $response2 = $this->get(route('prospects.timeline', $prospect2->id));
+    $response2->assertStatus(200);
+    $response2->assertSee('Globex Discussion Topic');
+    $response2->assertDontSee('Acme Discussion Topic');
+});
