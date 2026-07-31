@@ -158,3 +158,90 @@ it('can manually trigger sendNextStep dynamically via livewire', function () {
         'message_id' => 'nylas-msg-livewire-id',
     ]);
 });
+
+it('can open start contacting modal and start sequence with assigned blueprint', function () {
+    $this->actingAs($this->user);
+
+    // Connect Nylas Account to prevent sendNextStep from throwing error during test
+    NylasAccount::create([
+        'user_id' => $this->user->id,
+        'grant_id' => 'mock-grant-livewire',
+        'email' => 'user@example.com',
+    ]);
+
+    $template = Template::create([
+        'tenant_id' => $this->user->organization_id ?? $this->user->id,
+        'name' => 'Intro',
+        'subject' => 'Welcome {{contact_name}}',
+        'body' => 'Hi {{contact_name}} of {{company_name}}!',
+    ]);
+
+    $blueprint = Blueprint::create([
+        'tenant_id' => $this->user->organization_id ?? $this->user->id,
+        'name' => 'Sequence Test',
+    ]);
+
+    BlueprintStep::create([
+        'blueprint_id' => $blueprint->id,
+        'step_order' => 0,
+        'template_id' => $template->id,
+        'wait_days' => 1,
+    ]);
+
+    $prospect = Prospect::create([
+        'tenant_id' => $this->user->organization_id ?? $this->user->id,
+        'company_name' => 'Initech',
+        'contact_name' => 'Peter Gibbons',
+        'contact_email' => 'peter@initech.com',
+        'status' => 'new',
+    ]);
+
+    // Fake the Nylas sendMessage API call
+    Http::fake([
+        'https://api.us.nylas.com/v3/grants/mock-grant-livewire/messages/send' => Http::response([
+            'request_id' => 'mock-req-livewire',
+            'data' => [
+                'id' => 'nylas-msg-test-id',
+                'subject' => 'Welcome Peter Gibbons',
+                'body' => 'Hi Peter Gibbons of Initech!',
+            ]
+        ], 200)
+    ]);
+
+    Volt::test('prospects-board')
+        ->call('openStartContacting', $prospect->id)
+        ->assertSet('selectedProspectId', $prospect->id)
+        ->assertSet('isBlueprintModalOpen', true)
+        ->call('startContacting', $blueprint->id)
+        ->assertSet('selectedProspectId', null)
+        ->assertSet('isBlueprintModalOpen', false);
+
+    $prospect->refresh();
+    expect($prospect->blueprint_id)->toBe($blueprint->id);
+    expect($prospect->status)->toBe('active');
+    expect($prospect->current_step_order)->toBe(1);
+});
+
+it('can pause and resume contacting sequence via livewire', function () {
+    $this->actingAs($this->user);
+
+    $prospect = Prospect::create([
+        'tenant_id' => $this->user->organization_id ?? $this->user->id,
+        'company_name' => 'Initech',
+        'contact_name' => 'Peter Gibbons',
+        'contact_email' => 'peter@initech.com',
+        'status' => 'active',
+    ]);
+
+    Volt::test('prospects-board')
+        ->call('pauseContacting', $prospect->id);
+
+    $prospect->refresh();
+    expect($prospect->status)->toBe('paused');
+
+    Volt::test('prospects-board')
+        ->call('resumeContacting', $prospect->id);
+
+    $prospect->refresh();
+    expect($prospect->status)->toBe('active');
+});
