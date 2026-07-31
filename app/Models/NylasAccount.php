@@ -16,6 +16,11 @@ class NylasAccount extends Model
         'user_id',
         'grant_id',
         'email',
+        'is_syncing',
+    ];
+
+    protected $casts = [
+        'is_syncing' => 'boolean',
     ];
 
     /**

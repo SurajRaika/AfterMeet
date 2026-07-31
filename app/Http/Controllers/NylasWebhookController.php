@@ -51,6 +51,16 @@ class NylasWebhookController extends Controller
             Log::warning('Nylas Webhook: Webhook Secret is not configured, skipping verification.');
         }
 
+        // Handle optional gzip compression
+        if ($request->header('Content-Encoding') === 'gzip' || str_starts_with($rawBody, "\x1f\x8b")) {
+            $decompressed = @gzdecode($rawBody);
+            if ($decompressed === false) {
+                Log::warning('Nylas Webhook: Failed to decompress gzipped body.');
+                return response()->json(['error' => 'Failed to decompress body'], 400);
+            }
+            $rawBody = $decompressed;
+        }
+
         $payload = json_decode($rawBody, true);
 
         if (!$payload) {

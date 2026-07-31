@@ -143,7 +143,7 @@ new class extends Component
                     @endif
 
                     <!-- Nylas Connections Card -->
-                    <x-card class="p-6">
+                    <x-card class="p-6" @if(auth()->user()->nylasAccounts()->where('is_syncing', true)->exists()) wire:poll.5s @endif>
                         <div class="space-y-6">
                             <div class="flex items-start justify-between">
                                 <div class="space-y-1">
@@ -192,8 +192,13 @@ new class extends Component
                                                         {{ $account->email }}
                                                     </h4>
                                                     <div class="flex items-center gap-1.5 mt-0.5">
-                                                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                        <span class="text-xs text-zinc-500 dark:text-zinc-400">Connected</span>
+                                                        @if($account->is_syncing)
+                                                            <x-phosphor-arrows-clockwise-bold class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                                                            <span class="text-xs text-indigo-600 dark:text-indigo-400 font-medium animate-pulse">Syncing recent emails...</span>
+                                                        @else
+                                                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                            <span class="text-xs text-zinc-500 dark:text-zinc-400">Connected</span>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>

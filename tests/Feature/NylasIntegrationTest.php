@@ -26,6 +26,8 @@ it('redirects user to Nylas Hosted OAuth url', function () {
 });
 
 it('exchanges authorization code for grant_id and stores it', function () {
+    \Illuminate\Support\Facades\Queue::fake();
+
     $user = User::first() ?? User::factory()->create();
     $this->actingAs($user);
 
@@ -51,11 +53,59 @@ it('exchanges authorization code for grant_id and stores it', function () {
     $response->assertRedirect(route('settings.integrations'));
     $response->assertSessionHas('success');
 
-    // Verify account is stored in the database
+    // Verify account is stored in the database and is_syncing is true
     $account = NylasAccount::where('user_id', $user->id)->first();
     expect($account)->not->toBeNull();
     expect($account->grant_id)->toBe('mock-grant-id-12345');
     expect($account->email)->toBe('connected-user@gmail.com');
+    expect($account->is_syncing)->toBeTrue();
+
+    // Verify NylasInitialSyncJob was dispatched
+    \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\NylasInitialSyncJob::class, function ($job) use ($account) {
+        return $job->accountId === $account->id;
+    });
+});
+
+it('NylasInitialSyncJob performs sync, updates is_syncing state', function () {
+    $user = User::factory()->create();
+    $account = NylasAccount::create([
+        'user_id' => $user->id,
+        'grant_id' => 'mock-grant-sync-job',
+        'email' => 'connected-user@gmail.com',
+        'is_syncing' => true,
+    ]);
+
+    // Mock getMessages
+    Http::fake([
+        'https://api.us.nylas.com/v3/grants/mock-grant-sync-job/messages?limit=20' => Http::response([
+            'data' => [
+                [
+                    'id' => 'mock-msg-sync-1',
+                    'thread_id' => 'mock-thread-sync',
+                    'subject' => 'Artisan Sync Test',
+                    'from' => [['email' => 'sender@example.com']],
+                    'date' => 1711900000,
+                ]
+            ]
+        ], 200),
+        'https://api.us.nylas.com/v3/grants/mock-grant-sync-job/messages/mock-msg-sync-1' => Http::response([
+            'data' => [
+                'id' => 'mock-msg-sync-1',
+                'thread_id' => 'mock-thread-sync',
+                'subject' => 'Artisan Sync Test',
+                'from' => [['email' => 'sender@example.com']],
+                'date' => 1711900000,
+            ]
+        ], 200)
+    ]);
+
+    // Dispatch job synchronously
+    \App\Jobs\NylasInitialSyncJob::dispatchSync($account->id);
+
+    // After completion, is_syncing should be false, and message should be synced
+    $account->refresh();
+    expect($account->is_syncing)->toBeFalse();
+    expect(\App\Models\EmailMessage::where('nylas_message_id', 'mock-msg-sync-1')->exists())->toBeTrue();
 });
 
 it('handles failed token exchange gracefully', function () {

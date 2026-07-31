@@ -38,6 +38,9 @@ class NylasInitialSyncCommand extends Command
 
         $this->info("Starting initial email sync for account: {$account->email} (Grant: {$account->grant_id})");
 
+        // Mark account as syncing
+        $account->update(['is_syncing' => true]);
+
         try {
             $response = $nylasService->getMessages($account->grant_id, [
                 'limit' => 20,
@@ -75,6 +78,9 @@ class NylasInitialSyncCommand extends Command
             $this->newLine();
             $this->error("An error occurred during sync: " . $e->getMessage());
             return Command::FAILURE;
+        } finally {
+            // Mark account as not syncing
+            $account->update(['is_syncing' => false]);
         }
     }
 }
