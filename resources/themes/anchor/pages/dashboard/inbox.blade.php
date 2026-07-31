@@ -354,7 +354,7 @@ new class extends Component
                 </div>
 
                 <!-- 2. CONVERSATION LIST (Middle Pane) -->
-                <div class="w-full md:w-80 border-r border-zinc-200 dark:border-zinc-800 flex flex-col bg-white dark:bg-zinc-950">
+                <div class="w-full md:w-80 border-r border-zinc-200 dark:border-zinc-800 flex flex-col bg-white dark:bg-zinc-950" @if(auth()->user()->nylasAccounts()->where('is_syncing', true)->exists()) wire:poll.5s @endif>
                     <!-- Search Input -->
                     <div class="p-4 border-b border-zinc-200 dark:border-zinc-800">
                         <div class="relative">
@@ -362,6 +362,15 @@ new class extends Component
                             <input wire:model.live.debounce.300ms="searchQuery" type="text" placeholder="Search mail..." class="w-full pl-9 pr-4 py-1.5 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" />
                         </div>
                     </div>
+
+                    @if(auth()->user()->nylasAccounts()->where('is_syncing', true)->exists())
+                        <div class="p-4 bg-indigo-50 dark:bg-indigo-950/40 border-b border-indigo-100 dark:border-indigo-900/60 flex items-center gap-3">
+                            <x-phosphor-arrows-clockwise-bold class="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-spin flex-shrink-0" />
+                            <div class="text-xs text-indigo-800 dark:text-indigo-300">
+                                <span class="font-medium">Syncing your inbox...</span> We are fetching your recent emails from Nylas.
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- Threads scroll list -->
                     <div class="flex-1 overflow-y-auto divide-y divide-zinc-200 dark:divide-zinc-800 max-h-[500px] md:max-h-[calc(100vh-14rem)]">

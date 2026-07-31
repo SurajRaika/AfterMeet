@@ -66,15 +66,19 @@ class NylasController extends Controller
             $email = $result['email'] ?? $user->email;
 
             // Store in database
-            NylasAccount::updateOrCreate(
+            $account = NylasAccount::updateOrCreate(
                 [
                     'user_id' => $user->id,
                     'email' => $email,
                 ],
                 [
                     'grant_id' => $result['grant_id'],
+                    'is_syncing' => true,
                 ]
             );
+
+            // Dispatch background initial sync job
+            \App\Jobs\NylasInitialSyncJob::dispatch($account->id);
 
             return redirect()->route('settings.integrations')
                 ->with('success', 'Successfully connected your email and calendar through Nylas.');
