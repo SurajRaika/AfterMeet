@@ -18,6 +18,7 @@ use App\Http\Controllers\ProspectController;
 use App\Http\Controllers\ProspectImportController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\BlueprintController;
+use App\Http\Controllers\WorkflowController;
 
 // Webhook endpoint for Nylas (without CSRF, and open to the internet)
 Route::match(['get', 'post'], 'webhooks/nylas', [NylasWebhookController::class, 'handle'])
@@ -80,5 +81,18 @@ Route::middleware('auth')->group(function () {
             'update' => 'blueprints.update',
             'destroy' => 'blueprints.destroy',
         ])->except(['show']);
+
+        // Workflows V1 Engine routes
+        Route::resource('workflows', WorkflowController::class)->names([
+            'index' => 'workflows.index',
+            'create' => 'workflows.create',
+            'store' => 'workflows.store',
+            'show' => 'workflows.show',
+            'edit' => 'workflows.edit',
+            'update' => 'workflows.update',
+            'destroy' => 'workflows.destroy',
+        ]);
+        Route::post('workflows/{id}/execute', [WorkflowController::class, 'execute'])->name('workflows.execute');
+        Route::get('workflow-runs/{id}', [WorkflowController::class, 'showRun'])->name('workflows.showRun');
     });
 });
