@@ -31,7 +31,7 @@
 
                 <div class="flex flex-col justify-start items-center px-4 space-y-1.5 w-full h-full text-slate-600 dark:text-zinc-400">
                     <x-app.sidebar-link href="/dashboard" icon="phosphor-house" :active="Request::is('dashboard')">Dashboard</x-app.sidebar-link>
-                    <x-app.sidebar-link href="/dashboard/inbox" icon="phosphor-envelope-duotone" :active="Request::is('dashboard/inbox')">Inbox</x-app.sidebar-link>
+                    <x-app.sidebar-link href="/email" icon="phosphor-envelope-duotone" :active="Request::is('email')">Inbox</x-app.sidebar-link>
                     <x-app.sidebar-link href="/dashboard/prospects" icon="phosphor-users-duotone" :active="Request::is('dashboard/prospects*')">Prospects</x-app.sidebar-link>
                     <x-app.sidebar-link href="/dashboard/templates" icon="phosphor-layout-duotone" :active="Request::is('dashboard/templates*')">Templates</x-app.sidebar-link>
                     <x-app.sidebar-link href="/dashboard/blueprints" icon="phosphor-stack-duotone" :active="Request::is('dashboard/blueprints*')">Blueprints</x-app.sidebar-link>
