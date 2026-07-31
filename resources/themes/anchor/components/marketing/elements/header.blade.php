@@ -26,8 +26,8 @@
             evaluateScrollPosition(); 
         })
     " 
-    :class="{ 'border-gray-200/60 bg-white/90 border-b backdrop-blur-lg' : scrolled, 'border-transparent border-b bg-transparent translate-y-0' : !scrolled }" 
-    class="box-content sticky top-0 z-50 w-full h-24" 
+    :class="{ 'border-[#111827] bg-[#F9F6F0] border-b-4' : scrolled, 'border-[#111827] border-b-4 bg-[#F9F6F0]' : !scrolled }"
+    class="box-content sticky top-0 z-50 w-full h-24 transition-all"
 >
     <div 
         x-show="showOverlay"
@@ -157,12 +157,12 @@
 
                     @guest
                         <li class="relative z-30 flex flex-col items-center justify-center flex-shrink-0 w-full h-auto pt-3 space-y-3 text-sm md:hidden px-7">
-                            <x-button href="{{ route('login') }}" tag="a" class="w-full text-sm" color="secondary">Login</x-button>
-                            <x-button href="{{ route('register') }}" tag="a" class="w-full text-sm">Sign Up</x-button>
+                            <a href="{{ route('login') }}" class="w-full text-center text-sm border-2 border-[#111827] shadow-bauhaus bg-white text-[#111827] font-extrabold uppercase py-2 hover:bg-zinc-100">Login</a>
+                            <a href="{{ route('register') }}" class="w-full text-center text-sm border-2 border-[#111827] shadow-bauhaus bg-[#FFD100] text-[#111827] font-extrabold uppercase py-2 hover:bg-[#FFD100]/80">Sign Up</a>
                         </li>
                     @else
                         <li class="flex items-center justify-center w-full pt-3 md:hidden px-7">
-                            <x-button href="{{ route('login') }}" tag="a" class="w-full text-sm">View Dashboard</x-button>
+                            <a href="{{ route('login') }}" class="w-full text-center text-sm border-2 border-[#111827] shadow-bauhaus bg-[#FFD100] text-[#111827] font-extrabold uppercase py-2 hover:bg-[#FFD100]/80">View Dashboard</a>
                         </li>
                     @endguest
 
@@ -170,12 +170,12 @@
             </nav>
             
             @guest
-                <div class="relative z-30 items-center justify-center flex-shrink-0 hidden h-full space-x-3 text-sm md:flex">
-                    <x-button href="{{ route('login') }}" tag="a" class="text-sm" color="secondary">Login</x-button>
-                    <x-button href="{{ route('register') }}" tag="a" class="text-sm">Sign Up</x-button>
+                <div class="relative z-30 items-center justify-center flex-shrink-0 hidden h-full space-x-4 text-sm md:flex">
+                    <a href="{{ route('login') }}" class="text-sm border-2 border-[#111827] shadow-bauhaus bg-white text-[#111827] font-extrabold uppercase px-5 py-2.5 hover:bg-zinc-100 transition-colors">Login</a>
+                    <a href="{{ route('register') }}" class="text-sm border-2 border-[#111827] shadow-bauhaus bg-[#FFD100] text-[#111827] font-extrabold uppercase px-5 py-2.5 hover:bg-[#FFD100]/80 transition-colors">Sign Up</a>
                 </div>
             @else
-                <x-button href="{{ route('login') }}" tag="a" class="text-sm" class="relative z-20 flex-shrink-0 hidden ml-2 md:block">View Dashboard</x-button>
+                <a href="{{ route('login') }}" class="text-sm border-2 border-[#111827] shadow-bauhaus bg-[#FFD100] text-[#111827] font-extrabold uppercase px-5 py-2.5 hover:bg-[#FFD100]/80 transition-all">View Dashboard</a>
             @endguest
 
         </div>

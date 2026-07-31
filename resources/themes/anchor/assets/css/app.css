@@ -140,3 +140,89 @@ https://github.com/filamentphp/filament/blob/4.x/docs/01-introduction/02-install
 
 /* Required by widgets */
 @import '../../../../../vendor/filament/widgets/resources/css/index.css';
+
+/* Bauhaus Design Language Overrides */
+*, ::before, ::after {
+  border-radius: 0px !important;
+}
+
+/* Force off-white paper canvas background for standard light-mode pages */
+body:not(.dark) {
+  background-color: #F9F6F0 !important;
+}
+
+/* Custom Bauhaus colors and utilities */
+.bg-bauhaus-yellow {
+  background-color: #FFD100 !important;
+}
+.bg-bauhaus-red {
+  background-color: #E63946 !important;
+}
+.bg-bauhaus-blue {
+  background-color: #1D3557 !important;
+}
+.bg-bauhaus-cream {
+  background-color: #F9F6F0 !important;
+}
+
+.text-bauhaus-yellow {
+  color: #FFD100 !important;
+}
+.text-bauhaus-red {
+  color: #E63946 !important;
+}
+.text-bauhaus-blue {
+  color: #1D3557 !important;
+}
+
+/* Bauhaus High-Contrast Grid Borders */
+.border-bauhaus {
+  border: 3px solid #111827 !important;
+}
+.dark .border-bauhaus {
+  border: 3px solid #FFFFFF !important;
+}
+
+/* Bold Neobrutalist/Bauhaus Shadows */
+.shadow-bauhaus {
+  box-shadow: 4px 4px 0px 0px #111827 !important;
+}
+.dark .shadow-bauhaus {
+  box-shadow: 4px 4px 0px 0px #FFFFFF !important;
+}
+.shadow-bauhaus-red {
+  box-shadow: 4px 4px 0px 0px #E63946 !important;
+}
+.shadow-bauhaus-yellow {
+  box-shadow: 4px 4px 0px 0px #FFD100 !important;
+}
+.shadow-bauhaus-blue {
+  box-shadow: 4px 4px 0px 0px #1D3557 !important;
+}
+
+/* Overriding default buttons, inputs, cards to have a solid flat Bauhaus look */
+input, select, textarea, button, a.fi-btn, .fi-input-wrp {
+  border-radius: 0px !important;
+  border-width: 2px !important;
+  border-color: #111827 !important;
+}
+.dark input, .dark select, .dark textarea, .dark button, .dark a.fi-btn, .dark .fi-input-wrp {
+  border-color: #FFFFFF !important;
+}
+
+/* Force inputs and selects to not use soft rounded focus ring */
+input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  box-shadow: 4px 4px 0px 0px #FFD100 !important;
+}
+
+/* Styling Filament & default cards */
+.fi-card, .fi-section, .fi-ta-ctn {
+  border-radius: 0px !important;
+  border: 3px solid #111827 !important;
+  box-shadow: 6px 6px 0px 0px #111827 !important;
+}
+.dark .fi-card, .dark .fi-section, .dark .fi-ta-ctn {
+  border-color: #FFFFFF !important;
+  box-shadow: 6px 6px 0px 0px #FFFFFF !important;
+}

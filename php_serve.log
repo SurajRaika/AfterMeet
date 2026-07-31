@@ -5,25 +5,42 @@
 
   Press Ctrl+C to stop the server
 
-  2026-07-30 13:00:32 /temp-login ...................................... ~ 1s
-  2026-07-30 13:00:33 /dashboard/templates/create .................. ~ 0.04ms
-  2026-07-30 13:00:33 /login ....................................... ~ 0.03ms
-  2026-07-30 13:00:33 /auth/login ................................ ~ 500.53ms
-  2026-07-30 13:00:33 /storage/auth/background.jpg ................. ~ 0.05ms
-  2026-07-30 13:00:33 /auth/build/assets/styles.css ................ ~ 0.26ms
-  2026-07-30 13:00:33 /auth/app.css ................................ ~ 0.44ms
-  2026-07-30 13:00:33 /auth/build/assets/scripts.js ................ ~ 1.93ms
-  2026-07-30 13:00:33 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 2.09ms
-  2026-07-30 13:06:32 /temp-login .................................. ~ 0.15ms
-  2026-07-30 13:06:32 /dashboard/templates/create ................ ~ 500.48ms
-  2026-07-30 13:06:33 /fonts/filament/filament/inter/index.css?v=4.12.3.0  ~ 0.09ms
-  2026-07-30 13:06:33 /build/assets/app-CaUPGaqM.js ................ ~ 0.18ms
-  2026-07-30 13:06:33 /js/filament/actions/actions.js?v=4.12.3.0 ... ~ 0.35ms
-  2026-07-30 13:06:33 /js/filament/notifications/notifications.js?v=4.12.3.0  ~ 0.43ms
-  2026-07-30 13:06:33 /js/filament/schemas/schemas.js?v=4.12.3.0 ... ~ 0.48ms
-  2026-07-30 13:06:33 /build/assets/app-ZxAjUkCx.css ............... ~ 0.64ms
-  2026-07-30 13:06:33 /js/filament/tables/tables.js?v=4.12.3.0 ..... ~ 0.06ms
-  2026-07-30 13:06:33 /js/filament/support/support.js?v=4.12.3.0 ... ~ 0.16ms
-  2026-07-30 13:06:33 /build/assets/ai_email_template_builder-Czuzp23K.js  ~ 0.22ms
-  2026-07-30 13:06:33 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.29ms
-  2026-07-30 13:06:33 /dashboard/templates/generate-ai ........... ~ 500.58ms
+  2026-07-31 08:42:26 / ................................................ ~ 1s
+  2026-07-31 08:44:29 / .......................................... ~ 500.90ms
+  2026-07-31 08:44:29 /fonts/filament/filament/inter/index.css?v=4.12.4.0  ~ 0.07ms
+  2026-07-31 08:44:29 /build/assets/app-CqMx2lJc.css ............... ~ 0.13ms
+  2026-07-31 08:44:29 /build/assets/app-CaUPGaqM.js ................ ~ 0.05ms
+  2026-07-31 08:44:29 /wave/img/icons/anchor.png ................... ~ 0.41ms
+  2026-07-31 08:44:29 /wave/img/icons/turtle.png ................... ~ 0.64ms
+  2026-07-31 08:44:29 /wave/img/icons/compass.png .................. ~ 0.07ms
+  2026-07-31 08:44:29 /wave/img/icons/lighthouse.png ............... ~ 0.23ms
+  2026-07-31 08:44:29 /wave/img/icons/chest.png .................... ~ 0.36ms
+  2026-07-31 08:44:29 /js/filament/actions/actions.js?v=4.12.4.0 ... ~ 0.55ms
+  2026-07-31 08:44:29 /js/filament/notifications/notifications.js?v=4.12.4.0  ~ 0.62ms
+  2026-07-31 08:44:29 /js/filament/schemas/schemas.js?v=4.12.4.0 ... ~ 0.74ms
+  2026-07-31 08:44:30 /js/filament/tables/tables.js?v=4.12.4.0 ..... ~ 0.05ms
+  2026-07-31 08:44:30 /js/filament/support/support.js?v=4.12.4.0 ... ~ 0.24ms
+  2026-07-31 08:44:30 /wave/img/character.png ...................... ~ 0.20ms
+  2026-07-31 08:44:30 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.63ms
+
+   INFO  Environment modified. Restarting server...
+
+   INFO  Server running on [http://127.0.0.1:8000].
+
+  Press Ctrl+C to stop the server
+
+  2026-07-31 08:52:22 / ................................................ ~ 1s
+  2026-07-31 08:52:23 /fonts/filament/filament/inter/index.css?v=4.12.4.0  ~ 0.11ms
+  2026-07-31 08:52:23 /build/assets/app-CaUPGaqM.js ................ ~ 0.17ms
+  2026-07-31 08:52:23 /wave/img/icons/anchor.png ................... ~ 0.30ms
+  2026-07-31 08:52:23 /wave/img/icons/turtle.png ................... ~ 0.53ms
+  2026-07-31 08:52:23 /build/assets/app-CD0hJquc.css ............... ~ 0.75ms
+  2026-07-31 08:52:23 /wave/img/icons/compass.png .................. ~ 0.06ms
+  2026-07-31 08:52:23 /wave/img/icons/lighthouse.png ............... ~ 0.23ms
+  2026-07-31 08:52:23 /wave/img/icons/chest.png .................... ~ 0.39ms
+  2026-07-31 08:52:23 /js/filament/actions/actions.js?v=4.12.4.0 ... ~ 0.61ms
+  2026-07-31 08:52:23 /js/filament/notifications/notifications.js?v=4.12.4.0  ~ 0.51ms
+  2026-07-31 08:52:23 /js/filament/schemas/schemas.js?v=4.12.4.0 ... ~ 0.41ms
+  2026-07-31 08:52:23 /js/filament/tables/tables.js?v=4.12.4.0 ..... ~ 0.04ms
+  2026-07-31 08:52:23 /js/filament/support/support.js?v=4.12.4.0 ... ~ 0.14ms
+  2026-07-31 08:52:23 /vendor/livewire/livewire.js?id=42cd7fd5 ..... ~ 0.20ms
