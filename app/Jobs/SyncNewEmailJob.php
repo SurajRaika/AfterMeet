@@ -36,20 +36,39 @@ class SyncNewEmailJob implements ShouldQueue
      */
     public function handle(NylasService $nylasService): void
     {
-        Log::info("SyncNewEmailJob starting for grant ID: {$this->grantId}, message ID: {$this->objectId}");
+        Log::info("[SYNC JOB] SyncNewEmailJob starting.", [
+            'grant_id' => $this->grantId,
+            'message_id' => $this->objectId
+        ]);
 
         $account = NylasAccount::where('grant_id', $this->grantId)->first();
 
         if (!$account) {
-            Log::warning("SyncNewEmailJob failed: No NylasAccount found for grant ID: {$this->grantId}");
+            Log::warning("[SYNC JOB] FAILED: No NylasAccount found in local database for grant ID: {$this->grantId}");
             return;
         }
 
+        Log::info("[SYNC JOB] Match found for NylasAccount in local DB.", [
+            'account_id' => $account->id,
+            'user_id' => $account->user_id,
+            'email' => $account->email
+        ]);
+
         try {
+            Log::info("[SYNC JOB] Requesting message details from Nylas API...", [
+                'grant_id' => $this->grantId,
+                'message_id' => $this->objectId
+            ]);
+
             $response = $nylasService->getMessage($this->grantId, $this->objectId);
 
+            Log::info("[SYNC JOB] Nylas API response received.", [
+                'has_response' => !empty($response),
+                'has_data' => isset($response['data'])
+            ]);
+
             if (!$response || !isset($response['data'])) {
-                Log::warning("SyncNewEmailJob failed: Could not retrieve message details from Nylas.", [
+                Log::warning("[SYNC JOB] FAILED: Could not retrieve message details from Nylas. Response payload empty or invalid.", [
                     'response' => $response,
                 ]);
                 return;
@@ -60,8 +79,15 @@ class SyncNewEmailJob implements ShouldQueue
             $nylasMessageId = $msgData['id'] ?? null;
             $nylasThreadId = $msgData['thread_id'] ?? null;
 
+            Log::info("[SYNC JOB] Message data details.", [
+                'id' => $nylasMessageId,
+                'thread_id' => $nylasThreadId,
+                'subject' => $msgData['subject'] ?? 'No Subject',
+                'date' => $msgData['date'] ?? null
+            ]);
+
             if (!$nylasMessageId || !$nylasThreadId) {
-                Log::warning("SyncNewEmailJob: Message payload missing ID or Thread ID.", [
+                Log::warning("[SYNC JOB] FAILED: Message payload missing ID or Thread ID.", [
                     'msgData' => $msgData,
                 ]);
                 return;
@@ -93,6 +119,13 @@ class SyncNewEmailJob implements ShouldQueue
             $subject = $msgData['subject'] ?? '';
             $bodySnippet = $msgData['snippet'] ?? '';
             $bodyHtml = $msgData['body'] ?? '';
+
+            Log::info("[SYNC JOB] Saving Thread and Message to database...", [
+                'subject' => $subject,
+                'from_email' => $fromEmail,
+                'is_read' => $isRead,
+                'received_at' => $receivedAt->toDateTimeString()
+            ]);
 
             // Handle thread creation/update
             $thread = EmailThread::updateOrCreate(
@@ -127,9 +160,15 @@ class SyncNewEmailJob implements ShouldQueue
                 ]
             );
 
+            Log::info("[SYNC JOB] Thread and Message saved successfully.", [
+                'thread_id_in_db' => $thread->id,
+                'message_id_in_db' => $message->id
+            ]);
+
             // Handle attachments if any exist
             $attachments = $msgData['attachments'] ?? [];
             if (!empty($attachments) && is_array($attachments)) {
+                Log::info("[SYNC JOB] Message has attachments. Count: " . count($attachments));
                 foreach ($attachments as $att) {
                     $attId = $att['id'] ?? null;
                     if ($attId) {
@@ -142,14 +181,15 @@ class SyncNewEmailJob implements ShouldQueue
                                 'size' => $att['size'] ?? 0,
                             ]
                         );
+                        Log::info("[SYNC JOB] Attachment synced.", ['filename' => $att['filename'] ?? 'attachment']);
                     }
                 }
             }
 
-            Log::info("SyncNewEmailJob completed successfully. Synced message: {$nylasMessageId} inside thread: {$nylasThreadId}");
+            Log::info("[SYNC JOB] COMPLETED SUCCESSFULLY! Synced message: {$nylasMessageId} inside thread: {$nylasThreadId}");
 
         } catch (\Exception $e) {
-            Log::error("SyncNewEmailJob failed with exception: " . $e->getMessage(), [
+            Log::error("[SYNC JOB] EXCEPTION FAILED: " . $e->getMessage(), [
                 'exception' => $e,
             ]);
         }
