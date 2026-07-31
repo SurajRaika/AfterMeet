@@ -53,12 +53,13 @@ new class extends Component
 
     public function selectThread(int $threadId)
     {
-        $this->selectedThreadId = $threadId;
-
-        // Mark messages in thread as read
-        $thread = EmailThread::find($threadId);
+        $accountIds = auth()->user()->nylasAccounts()->pluck('id')->toArray();
+        $thread = EmailThread::whereIn('nylas_account_id', $accountIds)->find($threadId);
         if ($thread) {
+            $this->selectedThreadId = $threadId;
             $thread->messages()->where('is_read', false)->update(['is_read' => true]);
+        } else {
+            $this->selectedThreadId = null;
         }
     }
 
@@ -67,6 +68,8 @@ new class extends Component
         $threads = $this->getThreadsProperty();
         if ($threads->isNotEmpty()) {
             $this->selectedThreadId = $threads->first()->id;
+        } else {
+            $this->selectedThreadId = null;
         }
     }
 
@@ -116,7 +119,10 @@ new class extends Component
         if (!$this->selectedThreadId) {
             return null;
         }
-        return EmailThread::with(['messages.attachments'])->find($this->selectedThreadId);
+        $accountIds = auth()->user()->nylasAccounts()->pluck('id')->toArray();
+        return EmailThread::whereIn('nylas_account_id', $accountIds)
+            ->with(['messages.attachments'])
+            ->find($this->selectedThreadId);
     }
 
     public function getAccounts()
@@ -130,7 +136,10 @@ new class extends Component
             'toEmail' => 'required|email',
             'composeSubject' => 'required|string|max:255',
             'composeBody' => 'required|string',
-            'selectedAccountId' => 'required|exists:nylas_accounts,id',
+            'selectedAccountId' => [
+                'required',
+                \Illuminate\Validation\Rule::exists('nylas_accounts', 'id')->where('user_id', auth()->id()),
+            ],
         ]);
 
         $account = auth()->user()->nylasAccounts()->find($this->selectedAccountId);

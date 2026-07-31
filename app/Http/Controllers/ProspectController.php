@@ -36,8 +36,23 @@ class ProspectController extends Controller
                 ];
             });
 
-        // 2. Get local email messages synced from Nylas matching prospect's contact email
-        $emails = \App\Models\EmailMessage::where(function ($query) use ($prospect) {
+        // Get user IDs belonging to this tenant/organization to restrict email access
+        if (auth()->user()->organization_id) {
+            $userIds = \App\Models\User::where('organization_id', auth()->user()->organization_id)
+                ->pluck('id')
+                ->toArray();
+        } else {
+            $userIds = [auth()->id()];
+        }
+
+        // Get Nylas account IDs for these users
+        $nylasAccountIds = \App\Models\NylasAccount::whereIn('user_id', $userIds)
+            ->pluck('id')
+            ->toArray();
+
+        // 2. Get local email messages synced from Nylas matching prospect's contact email and owned by this tenant's users
+        $emails = \App\Models\EmailMessage::whereIn('nylas_account_id', $nylasAccountIds)
+            ->where(function ($query) use ($prospect) {
                 $query->where('from_email', $prospect->contact_email)
                       ->orWhere('to', 'like', '%' . $prospect->contact_email . '%');
             })
