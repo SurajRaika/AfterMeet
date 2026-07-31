@@ -3,7 +3,7 @@
 <head>
     @include('theme::partials.head', ['seo' => ($seo ?? null) ])
 </head>
-<body x-data class="flex flex-col min-h-screen overflow-x-hidden @if($bodyClass ?? false){{ $bodyClass }}@endif" x-cloak data-marketing-layout>
+<body x-data class="flex flex-col min-h-screen overflow-x-hidden bg-[#F9F6F0] text-zinc-900 @if($bodyClass ?? false){{ $bodyClass }}@endif" x-cloak data-marketing-layout>
 
     <x-marketing.elements.header />
 

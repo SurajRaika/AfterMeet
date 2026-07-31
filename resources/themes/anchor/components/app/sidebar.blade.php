@@ -10,10 +10,10 @@
     
     {{-- Sidebar --}} 
     <div :class="{ '-translate-x-full': !sidebarOpen }"
-        class="fixed top-0 left-0 flex items-stretch -translate-x-full overflow-hidden lg:translate-x-0 z-50 h-dvh md:h-screen transition-[width,transform] duration-150 ease-out bg-zinc-50 dark:bg-zinc-900 w-64 group @if(config('wave.dev_bar')){{ 'pb-10' }}@endif">  
+        class="fixed top-0 left-0 flex items-stretch -translate-x-full overflow-hidden lg:translate-x-0 z-50 h-dvh md:h-screen transition-[width,transform] duration-150 ease-out bg-[#F9F6F0] dark:bg-zinc-900 border-r-4 border-[#111827] dark:border-white w-64 group @if(config('wave.dev_bar')){{ 'pb-10' }}@endif">
         <div class="flex flex-col justify-between w-full overflow-auto md:h-full h-svh pt-4 pb-2.5">
             <div class="relative flex flex-col">
-                <button x-on:click="sidebarOpen=false" class="flex items-center justify-center flex-shrink-0 w-10 h-10 ml-4 rounded-md lg:hidden text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 dark:hover:bg-zinc-700/70 hover:bg-gray-200/70">
+                <button x-on:click="sidebarOpen=false" class="flex items-center justify-center flex-shrink-0 w-10 h-10 ml-4 rounded-none lg:hidden text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 dark:hover:bg-zinc-700/70 hover:bg-gray-200/70 border-2 border-[#111827]">
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                 </button>
 
@@ -23,9 +23,9 @@
                     </a>
                 </div>
                 <div class="flex items-center px-4 pt-1 pb-3">
-                    <div class="relative flex items-center w-full h-full rounded-lg">
+                    <div class="relative flex items-center w-full h-full rounded-none">
                         <x-phosphor-magnifying-glass class="absolute left-0 w-5 h-5 ml-2 text-gray-400 -translate-y-px" />
-                        <input type="text" class="w-full py-2 pl-8 text-sm border rounded-lg bg-zinc-200/70 focus:bg-white duration-50 dark:bg-zinc-950 ease border-zinc-200 dark:border-zinc-700/70 dark:ring-zinc-700/70 focus:ring dark:text-zinc-200 dark:focus:ring-zinc-700/70 dark:focus:border-zinc-700 focus:ring-zinc-200 focus:border-zinc-300 dark:placeholder-zinc-400" placeholder="Search">
+                        <input type="text" class="w-full py-2 pl-8 text-sm border-2 border-[#111827] rounded-none bg-white focus:bg-white duration-50 dark:bg-zinc-950 ease border-zinc-200 dark:border-zinc-700/70 dark:ring-zinc-700/70 focus:ring dark:text-zinc-200 dark:focus:ring-zinc-700/70 dark:focus:border-zinc-700 focus:ring-zinc-200 focus:border-zinc-300 dark:placeholder-zinc-400" placeholder="Search">
                     </div>
                 </div>
 
@@ -52,12 +52,12 @@
                 <x-app.sidebar-link :href="route('changelogs')" icon="phosphor-book-open-text-duotone" :active="Request::is('changelog') || Request::is('changelog/*')">Changelog</x-app.sidebar-link>
 
                 <div x-show="sidebarTip" x-data="{ sidebarTip: $persist(true) }" class="px-1 py-3" x-collapse x-cloak>
-                    <div class="relative w-full px-4 py-3 space-y-1 border rounded-lg bg-zinc-50 text-zinc-700 dark:text-zinc-100 dark:bg-zinc-800 border-zinc-200/60 dark:border-zinc-700">
-                        <button @click="sidebarTip=false" class="absolute top-0 right-0 z-50 p-1.5 mt-2.5 mr-2.5 rounded-full opacity-80 cursor-pointer hover:opacity-100 hover:bg-zinc-100 hover:dark:bg-zinc-700 hover:dark:text-zinc-300 text-zinc-500 dark:text-zinc-400">
+                    <div class="relative w-full px-4 py-3 space-y-1 border-2 rounded-none bg-white text-zinc-700 dark:text-zinc-100 dark:bg-zinc-800 border-[#111827] dark:border-zinc-700 shadow-bauhaus">
+                        <button @click="sidebarTip=false" class="absolute top-0 right-0 z-50 p-1.5 mt-2.5 mr-2.5 rounded-none opacity-80 cursor-pointer hover:opacity-100 hover:bg-zinc-100 hover:dark:bg-zinc-700 hover:dark:text-zinc-300 text-zinc-500 dark:text-zinc-400">
                             <x-phosphor-x-bold class="w-3 h-3" />
                         </button>
-                        <h5 class="pb-1 text-sm font-bold -translate-y-0.5">Edit This Section</h5>
-                        <p class="block pb-1 text-xs opacity-80 text-balance">You can edit any aspect of your user dashboard. This section can be found inside your theme component/app/sidebar file.</p>
+                        <h5 class="pb-1 text-sm font-bold -translate-y-0.5 font-mono uppercase text-[#111827]">Edit This Section</h5>
+                        <p class="block pb-1 text-xs opacity-80 text-balance font-mono">You can edit any aspect of your user dashboard. This section can be found inside your theme component/app/sidebar file.</p>
                     </div>
                 </div>
 
