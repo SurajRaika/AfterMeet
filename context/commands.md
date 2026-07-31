@@ -1,0 +1,1 @@
+cloudflared tunnel --protocol http2 run laravel-webhook
