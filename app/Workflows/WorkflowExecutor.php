@@ -62,6 +62,7 @@ class WorkflowExecutor
 
             $context = array_merge($initialInput, [
                 'prospect_id' => $prospect?->id,
+                'tenant_id' => $workflow->tenant_id,
             ]);
 
             $currentNode = $startingNode;

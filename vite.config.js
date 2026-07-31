@@ -16,6 +16,7 @@ export default defineConfig({
                 `resources/themes/${activeTheme}/assets/css/app.css`,
                 `resources/themes/${activeTheme}/assets/js/app.js`,
                 `resources/themes/${activeTheme}/dashboard/templates/ai_email_template_builder.tsx`,
+                `resources/themes/${activeTheme}/dashboard/workflows/visual_builder.tsx`,
                 'resources/css/filament/admin/theme.css',
             ],
             refresh: [

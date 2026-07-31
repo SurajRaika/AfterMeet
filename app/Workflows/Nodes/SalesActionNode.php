@@ -16,8 +16,13 @@ class SalesActionNode implements WorkflowNode
 
         $applied = false;
 
+        $tenantId = $input['tenant_id'] ?? null;
+
         if ($prospectId) {
-            $prospect = Prospect::find($prospectId);
+            $prospect = $tenantId
+                ? Prospect::where('tenant_id', $tenantId)->find($prospectId)
+                : Prospect::find($prospectId);
+
             if ($prospect) {
                 if ($action === 'update_stage') {
                     $prospect->update(['stage' => $stage]);
