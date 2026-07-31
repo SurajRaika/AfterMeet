@@ -1,106 +1,106 @@
 # Nylas Webhook Setup Guide
 
-This guide explains how to connect and configure your Nylas Webhook using your **ngrok** tunnel URL: `https://lumber-mossy-decency.ngrok-free.dev`.
-
-Follow these step-by-step instructions to configure, verify, and activate the webhook in your Nylas Dashboard and local Laravel application.
+This guide explains how to connect and configure your Nylas Webhook and explains a critical restriction regarding **ngrok**.
 
 ---
 
-## Prerequisites
+## IMPORTANT: Nylas Blocks ngrok!
 
-Before starting, make sure your local development environment is running and accessible:
+According to the official Nylas v3 documentation:
+> **"Nylas blocks requests to ngrok testing URLs because of throughput limiting concerns. We recommend using Expose, Cloudflare Tunnels (cloudflared), Hookdeck, or VS Code port forwarding instead."**
 
-1. **Start your local Laravel server**:
+If you try to use an `ngrok-free.dev` or `ngrok.app` URL, Nylas will block the handshake request from ever reaching your machine, which results in the error:
+`"Ensure your server is set up to receive and respond to our challenge."`
+
+To make webhooks work successfully, you **must use an alternative local tunneling tool** such as **Expose** or **Cloudflare Tunnels**. Below is how to set them up.
+
+---
+
+## Alternative 1: Using Expose (Recommended for PHP/Laravel)
+
+**Expose** is an excellent, open-source tunneling tool made specifically for Laravel applications by BeyondCode.
+
+1. **Install Expose globally** via Composer:
+   ```bash
+   composer global require dev_beyondcode/expose
+   ```
+2. **Share your local server**:
+   Start your local Laravel server:
    ```bash
    php artisan serve
    ```
-   *(This starts the application locally, typically at `http://127.0.0.1:8000`)*
-
-2. **Ensure your ngrok tunnel is running and pointing to port `8000`**:
+   Then in another terminal, run:
    ```bash
-   ngrok http 8000
+   expose share http://127.0.0.1:8000
    ```
-   *(Ensure that the generated ngrok URL is exactly: `https://lumber-mossy-decency.ngrok-free.dev`)*
-
-3. **Verify the endpoint is reachable**:
-   - Open your browser and navigate to: `https://lumber-mossy-decency.ngrok-free.dev/webhooks/nylas`
-   - You should see a blank screen or a `404` or `Method Not Allowed` if accessed via GET without parameters, but it should not return a connection/tunnel error. If you append `?challenge=test_handshake`, e.g., `https://lumber-mossy-decency.ngrok-free.dev/webhooks/nylas?challenge=test_handshake`, it should return `test_handshake` as plain text. This means your handshake endpoint is fully working and ready!
+3. **Get your public URL**:
+   Expose will generate a public HTTPS URL like:
+   `https://yourcustomdomain.sharedwithexpose.com`
+4. Use this URL in the steps below instead of ngrok!
 
 ---
 
-## Step 1: Add Webhook in Nylas Dashboard
+## Alternative 2: Using Cloudflare Tunnels (Free & Extremely Stable)
+
+Cloudflare Tunnels are completely free, do not require a paid account, and are never blocked by Nylas.
+
+1. **Install cloudflared**:
+   - **macOS**: `brew install cloudflared`
+   - **Windows**: Download the binary from Cloudflare or use `winget install Cloudflare.cloudflared`
+   - **Linux**: Install via your package manager.
+2. **Start your local Laravel server**:
+   ```bash
+   php artisan serve
+   ```
+3. **Run the tunnel**:
+   ```bash
+   cloudflared tunnel --url http://localhost:8000
+   ```
+4. **Get your public URL**:
+   Cloudflare will print a URL looking like:
+   `https://some-random-words.trycloudflare.com`
+5. Use this `.trycloudflare.com` URL in the steps below instead of ngrok!
+
+---
+
+## Step-by-Step Webhook Configuration
+
+Once you have your alternative tunnel URL (e.g., from Expose or Cloudflare):
+
+### Step 1: Add Webhook in Nylas Dashboard
 
 1. **Log in to the Nylas Dashboard**:
    - Go to [dashboard.nylas.com](https://dashboard.nylas.com/) and log in.
-
 2. **Select your v3 Application**:
-   - Select the application you are configuring from the applications dropdown list.
-
+   - Select your application from the dropdown menu.
 3. **Navigate to Webhooks**:
-   - In the left-hand navigation sidebar, click on **Webhooks** (under the Integration or Developer section).
-
+   - In the left sidebar, click on **Webhooks** or **Notifications**.
 4. **Create a New Webhook**:
    - Click the **Add Webhook** or **Create Webhook** button.
 
----
-
-## Step 2: Configure Webhook Options
-
-In the creation form, fill out the following details exactly as shown:
+### Step 2: Configure Webhook Options
 
 1. **Destination URL**:
-   - Paste your full ngrok webhook endpoint:
+   - Paste your full tunnel webhook endpoint (replace with your active Cloudflare or Expose URL):
      ```text
-     https://lumber-mossy-decency.ngrok-free.dev/webhooks/nylas
+     https://<your-tunnel-subdomain>/webhooks/nylas
      ```
+2. **Triggers (What to select)**:
+   - For email syncing and tracking, check the following:
+     - [x] `message.created` *(Fired when a new email is received or sent)*
+     - [x] `message.updated` *(Fired when an email status changes, e.g., read/unread or moved)*
+3. **Compress webhook payloads (gzip)**:
+   - **Keep this checked (Yes!)**. Our application's `NylasWebhookController` has built-in support for automatic gzip decompression. Checking this optimizes payload sizes and helps bypass certain local firewalls.
+4. **Save**:
+   - Click **Create webhook**.
+   - **What happens:** Nylas sends a GET request with a challenge to your URL. Your local application responds with the challenge, and the webhook immediately changes to **Active** (green).
 
-2. **Webhook Trigger Events (Select the following based on your needs)**:
-   - For email syncing and tracking:
-     - [x] `message.created` *(Triggers when a new email is received or sent)*
-     - [x] `message.updated` *(Triggers when an email status changes, e.g. read, unread, or moved)*
-   - *(Optional) For calendars and contacts if you plan to integrate them:*
-     - [ ] `event.created` / `event.updated`
-     - [ ] `contact.created` / `contact.updated`
-
-3. **Save and Complete Handshake**:
-   - Click **Save** or **Create**.
-   - **What happens next:** Nylas will immediately send a `GET` request containing a `challenge` parameter to your ngrok URL.
-   - Your local application's `NylasWebhookController` will automatically detect this `GET` request and return the challenge string back in plain text with a `200 OK` status.
-   - Once Nylas receives this response, it will mark your webhook status as **Active** (green checkmark).
-
----
-
-## Step 3: Configure Your Local Environment (`.env`)
-
-Once the webhook is active:
+### Step 3: Configure Your Local Environment (`.env`)
 
 1. **Copy the Webhook Secret**:
-   - The Nylas Dashboard will display your new **Webhook Secret** (sometimes labeled as *Signing Secret*). Copy this secret key.
-
-2. **Update your `.env` file**:
-   - Open your project's `.env` file and locate or add the `NYLAS_WEBHOOK_SECRET` key.
-   - Paste the secret:
-     ```env
-     NYLAS_WEBHOOK_SECRET=your_copied_webhook_secret_here
-     ```
-
-3. **Update your App URL**:
-   - Ensure your `APP_URL` in `.env` is also set to your tunnel URL:
-     ```env
-     APP_URL=https://lumber-mossy-decency.ngrok-free.dev
-     ```
-
----
-
-## Troubleshooting Handshake Failures
-
-If Nylas fails to verify your endpoint during step 2, check the following:
-
-1. **Is your Laravel server running?**
-   - Ensure `php artisan serve` is running in your terminal.
-2. **Is ngrok connected to the correct port?**
-   - Make sure ngrok is forwarding to `http://localhost:8000` (or whichever port your Laravel app is using).
-3. **Is the route excluded from CSRF verification?**
-   - Yes, in our Wave application, the webhook route is defined in `routes/web.php` and is completely open to receive external requests, so CSRF won't block it.
-4. **Is ngrok's custom domain configured properly?**
-   - Ensure you are using the correct ngrok free domain `https://lumber-mossy-decency.ngrok-free.dev` in your ngrok CLI command.
+   - Once created, copy the **Webhook Secret** (signing secret) shown in the Nylas Dashboard.
+2. **Update your `.env`**:
+   ```env
+   APP_URL=https://<your-tunnel-subdomain>
+   NYLAS_WEBHOOK_SECRET=your_copied_webhook_secret_here
+   ```
