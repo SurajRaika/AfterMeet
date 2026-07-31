@@ -660,3 +660,92 @@ it('restricts emails on the prospect timeline to the active organization account
     $response2->assertSee('Globex Discussion Topic');
     $response2->assertDontSee('Acme Discussion Topic');
 });
+
+it('can trigger on-demand sync of emails and prevents duplicates', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $account = NylasAccount::create([
+        'user_id' => $user->id,
+        'grant_id' => 'mock-grant-on-demand',
+        'email' => 'user-on-demand@example.com',
+    ]);
+
+    // Create a message that is already synced
+    $thread = EmailThread::create([
+        'nylas_thread_id' => 'th-existing',
+        'nylas_account_id' => $account->id,
+        'subject' => 'Existing Subject',
+        'last_message_at' => now(),
+    ]);
+
+    EmailMessage::create([
+        'nylas_message_id' => 'msg-existing',
+        'email_thread_id' => $thread->id,
+        'nylas_account_id' => $account->id,
+        'from_email' => 'someone@example.com',
+        'to' => [['email' => 'user-on-demand@example.com']],
+        'subject' => 'Existing Subject',
+        'body_snippet' => 'Already here',
+        'is_read' => true,
+        'is_draft' => false,
+        'received_at' => now(),
+    ]);
+
+    // Mock Nylas API response that has both the existing message and a new missing message
+    Http::fake([
+        'https://api.us.nylas.com/v3/grants/mock-grant-on-demand/messages?limit=20' => Http::response([
+            'data' => [
+                [
+                    'id' => 'msg-existing',
+                    'thread_id' => 'th-existing',
+                    'subject' => 'Existing Subject',
+                    'snippet' => 'Already here',
+                    'from' => [['email' => 'someone@example.com']],
+                    'to' => [['email' => 'user-on-demand@example.com']],
+                    'date' => time(),
+                    'unread' => false,
+                    'is_draft' => false,
+                ],
+                [
+                    'id' => 'msg-new-missing',
+                    'thread_id' => 'th-new-missing',
+                    'subject' => 'New Subject',
+                    'snippet' => 'This was missing!',
+                    'from' => [['email' => 'someone@example.com']],
+                    'to' => [['email' => 'user-on-demand@example.com']],
+                    'date' => time(),
+                    'unread' => true,
+                    'is_draft' => false,
+                ]
+            ]
+        ], 200),
+        'https://api.us.nylas.com/v3/grants/mock-grant-on-demand/messages/msg-new-missing' => Http::response([
+            'data' => [
+                'id' => 'msg-new-missing',
+                'thread_id' => 'th-new-missing',
+                'subject' => 'New Subject',
+                'body' => '<p>This was missing!</p>',
+                'snippet' => 'This was missing!',
+                'from' => [['email' => 'someone@example.com']],
+                'to' => [['email' => 'user-on-demand@example.com']],
+                'date' => time(),
+                'unread' => true,
+                'is_draft' => false,
+            ]
+        ], 200)
+    ]);
+
+    // Let's assert that only the unsynced message is persisted after calling `syncEmails` on the email page component
+    Volt::test('email')
+        ->call('syncEmails')
+        ->assertHasNoErrors();
+
+    // Verify 'msg-new-missing' has been synced to local DB
+    $newMsg = EmailMessage::where('nylas_message_id', 'msg-new-missing')->first();
+    expect($newMsg)->not->toBeNull();
+    expect($newMsg->subject)->toBe('New Subject');
+
+    // Verify existing message was not duplicated or recreated
+    expect(EmailMessage::where('nylas_message_id', 'msg-existing')->count())->toBe(1);
+});
