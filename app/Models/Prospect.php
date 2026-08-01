@@ -64,6 +64,40 @@ class Prospect extends Model
     }
 
     /**
+     * Bootstrap the model and trigger automated event workflows.
+     */
+    protected static function booted()
+    {
+        static::created(function ($prospect) {
+            $automation = Automation::where('name', 'Prospect Created Workflow')
+                ->where('is_active', true)
+                ->first();
+
+            if ($automation) {
+                $engine = new \App\Workflows\WorkflowEngine();
+                $engine->start($automation, $prospect, [
+                    'event' => 'prospect_created',
+                    'created_at' => now()->toDateTimeString(),
+                ]);
+            }
+        });
+
+        static::updated(function ($prospect) {
+            $automation = Automation::where('name', 'Prospect Updated Workflow')
+                ->where('is_active', true)
+                ->first();
+
+            if ($automation) {
+                $engine = new \App\Workflows\WorkflowEngine();
+                $engine->start($automation, $prospect, [
+                    'event' => 'prospect_updated',
+                    'updated_at' => now()->toDateTimeString(),
+                ]);
+            }
+        });
+    }
+
+    /**
      * Get the current step for the prospect.
      * Returns the blueprint step where step_order matches the prospect's current_step_order.
      */

@@ -95,5 +95,47 @@ class AutomationsTableSeeder extends Seeder
                 ],
             ]
         );
+
+        // Template 3: Prospect Created Workflow (Event Trigger)
+        Automation::updateOrCreate(
+            ['name' => 'Prospect Created Workflow'],
+            [
+                'type' => 'trigger',
+                'is_active' => false,
+                'workflow_definition' => [
+                    'start_node' => 'node_trigger_webhook_created',
+                    'nodes' => [
+                        'node_trigger_webhook_created' => [
+                            'type' => 'TriggerWebhookNode',
+                            'config' => [
+                                'webhook_url' => 'https://api.yourdomain.com/webhook-prospect-created',
+                            ],
+                            'next' => 'end',
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        // Template 4: Prospect Updated Workflow (Event Trigger)
+        Automation::updateOrCreate(
+            ['name' => 'Prospect Updated Workflow'],
+            [
+                'type' => 'trigger',
+                'is_active' => false,
+                'workflow_definition' => [
+                    'start_node' => 'node_trigger_webhook_updated',
+                    'nodes' => [
+                        'node_trigger_webhook_updated' => [
+                            'type' => 'TriggerWebhookNode',
+                            'config' => [
+                                'webhook_url' => 'https://api.yourdomain.com/webhook-prospect-updated',
+                            ],
+                            'next' => 'end',
+                        ],
+                    ],
+                ],
+            ]
+        );
     }
 }

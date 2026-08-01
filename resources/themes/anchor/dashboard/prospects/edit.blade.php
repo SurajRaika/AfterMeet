@@ -66,24 +66,6 @@
                     </div>
 
                     <div>
-                        <label for="blueprint_id" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Assigned Blueprint</label>
-                        <select name="blueprint_id" id="blueprint_id" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                            <option value="">No Sequence Blueprint</option>
-                            @foreach($blueprints as $bp)
-                                <option value="{{ $bp->id }}" {{ old('blueprint_id', $prospect->blueprint_id) == $bp->id ? 'selected' : '' }}>{{ $bp->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('blueprint_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div>
-                        <label for="current_step_order" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Current Step Index (0-based)</label>
-                        <input type="number" name="current_step_order" id="current_step_order" required value="{{ old('current_step_order', $prospect->current_step_order) }}" min="0" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
-                        <span class="text-xs text-zinc-400">Step 0 is the first step of the blueprint sequence.</span>
-                        @error('current_step_order') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div>
                         <label for="country" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Country</label>
                         <input type="text" name="country" id="country" value="{{ old('country', $prospect->country) }}" placeholder="e.g. USA" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                         @error('country') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror

@@ -91,4 +91,64 @@ class AutomationController extends Controller
 
         return redirect()->route('automations.index')->with('success', 'Automation deleted successfully.');
     }
+
+    /**
+     * Show configuration view for an automation.
+     */
+    public function configure($id)
+    {
+        $automation = Automation::findOrFail($id);
+        return view('theme::dashboard.automations.configure', compact('automation'));
+    }
+
+    /**
+     * Update the automation configuration.
+     */
+    public function updateConfig(Request $request, $id)
+    {
+        $automation = Automation::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $definition = $automation->workflow_definition;
+
+        // General fields update
+        $automation->name = $request->name;
+
+        // Iterate over nodes and update specific configs if submitted
+        if (isset($definition['nodes'])) {
+            foreach ($definition['nodes'] as $nodeId => &$node) {
+                // If subject and body are provided for this node
+                if ($request->has("nodes.{$nodeId}.subject") && $request->has("nodes.{$nodeId}.body")) {
+                    $node['config']['subject'] = $request->input("nodes.{$nodeId}.subject");
+                    $node['config']['body'] = $request->input("nodes.{$nodeId}.body");
+                }
+
+                // If delay days or seconds are provided
+                if ($request->has("nodes.{$nodeId}.days")) {
+                    $node['config']['days'] = (int)$request->input("nodes.{$nodeId}.days");
+                }
+                if ($request->has("nodes.{$nodeId}.seconds")) {
+                    $node['config']['seconds'] = (int)$request->input("nodes.{$nodeId}.seconds");
+                }
+
+                // If webhook URL is provided
+                if ($request->has("nodes.{$nodeId}.webhook_url")) {
+                    $node['config']['webhook_url'] = $request->input("nodes.{$nodeId}.webhook_url");
+                }
+
+                // If intent conditions are provided
+                if ($request->has("nodes.{$nodeId}.conditions")) {
+                    $node['config']['conditions'] = $request->input("nodes.{$nodeId}.conditions");
+                }
+            }
+        }
+
+        $automation->workflow_definition = $definition;
+        $automation->save();
+
+        return redirect()->route('automations.index')->with('success', "Automation '{$automation->name}' updated successfully.");
+    }
 }

@@ -88,5 +88,7 @@ Route::middleware('auth')->group(function () {
         Route::get('automations/{id}/runs', [\App\Http\Controllers\AutomationController::class, 'runs'])->name('automations.runs');
         Route::post('automations/seed-defaults', [\App\Http\Controllers\AutomationController::class, 'seedDefaults'])->name('automations.seed-defaults');
         Route::delete('automations/{id}', [\App\Http\Controllers\AutomationController::class, 'destroy'])->name('automations.destroy');
+        Route::get('automations/{id}/configure', [\App\Http\Controllers\AutomationController::class, 'configure'])->name('automations.configure');
+        Route::post('automations/{id}/configure', [\App\Http\Controllers\AutomationController::class, 'updateConfig'])->name('automations.update-config');
     });
 });

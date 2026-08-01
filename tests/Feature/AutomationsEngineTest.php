@@ -9,6 +9,7 @@ use App\Models\NylasAccount;
 use App\Models\User;
 use App\Workflows\WorkflowEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
 
@@ -119,4 +120,49 @@ test('Test 2 (Booking flow): Assign Smart Inbox and process book call email', fu
 
     expect($emailSent)->not->toBeNull();
     expect($emailSent->body_html)->toContain('https://calendly.com/wave-ai/15min');
+});
+
+test('Test 3 (Event triggers & Webhook delivery): Create prospect and assert webhook sends POST', function () {
+    // Fake outgoing HTTP calls
+    Http::fake();
+
+    // Get the first user we created
+    $user = User::first();
+
+    // Retrieve and activate the Prospect Created Workflow
+    $automation = Automation::where('name', 'Prospect Created Workflow')->first();
+    expect($automation)->not->toBeNull();
+
+    // Customize the webhook destination URL
+    $definition = $automation->workflow_definition;
+    $definition['nodes']['node_trigger_webhook_created']['config']['webhook_url'] = 'https://my-webhook.com/event';
+    $automation->workflow_definition = $definition;
+    $automation->is_active = true;
+    $automation->save();
+
+    // Create a new Prospect, which should automatically trigger the Prospect Created Workflow via Eloquent booted hook
+    $prospect = Prospect::create([
+        'tenant_id' => $user->id,
+        'company_name' => 'Cyberdyne Systems',
+        'contact_name' => 'John Connor',
+        'contact_email' => 'john@cyberdyne.com',
+        'contact_role' => 'Leader',
+        'status' => 'new',
+        'stage' => 'New',
+    ]);
+
+    // Retrieve the instance
+    $instance = AutomationInstance::where('prospect_id', $prospect->id)
+        ->where('automation_id', $automation->id)
+        ->first();
+
+    expect($instance)->not->toBeNull();
+    expect($instance->status)->toBe('completed');
+
+    // Assert that the webhook POST request was sent to the configured URL with the correct payload
+    Http::assertSent(function ($request) use ($prospect) {
+        return $request->url() === 'https://my-webhook.com/event' &&
+               $request['event'] === 'prospect_created' &&
+               $request['prospect']['email'] === 'john@cyberdyne.com';
+    });
 });

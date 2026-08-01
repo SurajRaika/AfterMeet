@@ -111,7 +111,7 @@
                 </div>
             @empty
                 <div class="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden p-12 text-center text-zinc-400 dark:text-zinc-500">
-                    <x-phosphor-history-duotone class="w-12 h-12 mx-auto text-zinc-300 dark:text-zinc-700" />
+                    <x-phosphor-clock-duotone class="w-12 h-12 mx-auto text-zinc-300 dark:text-zinc-700" />
                     <p class="text-sm mt-2 font-medium">No execution instances found</p>
                     <p class="text-xs mt-1">Select a prospect in the table on the Automations page and click "Trigger" to start an execution run.</p>
                 </div>
