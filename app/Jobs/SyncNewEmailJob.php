@@ -186,6 +186,20 @@ class SyncNewEmailJob implements ShouldQueue
                 }
             }
 
+            Log::info("[SYNC JOB] Triggering Automation Engine hook for incoming email...", [
+                'from' => $fromEmail,
+                'subject' => $subject,
+            ]);
+
+            try {
+                $automationEngine = new \App\Services\AutomationEngine();
+                $automationEngine->handleIncomingEmail($fromEmail, $subject, $bodyHtml ?: $bodySnippet ?: '', $this->grantId);
+            } catch (\Exception $ae) {
+                Log::error("[SYNC JOB] Automation trigger failed: " . $ae->getMessage(), [
+                    'exception' => $ae,
+                ]);
+            }
+
             Log::info("[SYNC JOB] COMPLETED SUCCESSFULLY! Synced message: {$nylasMessageId} inside thread: {$nylasThreadId}");
 
         } catch (\Exception $e) {

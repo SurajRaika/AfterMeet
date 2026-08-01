@@ -80,5 +80,19 @@ Route::middleware('auth')->group(function () {
             'update' => 'blueprints.update',
             'destroy' => 'blueprints.destroy',
         ])->except(['show']);
+
+        // Automations Backend CRUD
+        Route::resource('automations', \App\Http\Controllers\AutomationController::class)->names([
+            'index' => 'automations.index',
+            'create' => 'automations.create',
+            'store' => 'automations.store',
+            'edit' => 'automations.edit',
+            'update' => 'automations.update',
+            'destroy' => 'automations.destroy',
+        ])->except(['show']);
+
+        Route::post('automations/{id}/toggle-active', [\App\Http\Controllers\AutomationController::class, 'toggleActive'])->name('automations.toggle-active');
+        Route::post('automations/{id}/duplicate', [\App\Http\Controllers\AutomationController::class, 'duplicate'])->name('automations.duplicate');
+        Route::post('automations/{id}/assign', [\App\Http\Controllers\AutomationController::class, 'assignToProspect'])->name('automations.assign');
     });
 });
