@@ -80,5 +80,15 @@ Route::middleware('auth')->group(function () {
             'update' => 'blueprints.update',
             'destroy' => 'blueprints.destroy',
         ])->except(['show']);
+
+        // Automation Execution Engine Routes
+        Route::get('automations', [\App\Http\Controllers\AutomationController::class, 'index'])->name('automations.index');
+        Route::post('automations/{id}/toggle', [\App\Http\Controllers\AutomationController::class, 'toggle'])->name('automations.toggle');
+        Route::post('automations/{id}/trigger', [\App\Http\Controllers\AutomationController::class, 'trigger'])->name('automations.trigger');
+        Route::get('automations/{id}/runs', [\App\Http\Controllers\AutomationController::class, 'runs'])->name('automations.runs');
+        Route::post('automations/seed-defaults', [\App\Http\Controllers\AutomationController::class, 'seedDefaults'])->name('automations.seed-defaults');
+        Route::delete('automations/{id}', [\App\Http\Controllers\AutomationController::class, 'destroy'])->name('automations.destroy');
+        Route::get('automations/{id}/configure', [\App\Http\Controllers\AutomationController::class, 'configure'])->name('automations.configure');
+        Route::post('automations/{id}/configure', [\App\Http\Controllers\AutomationController::class, 'updateConfig'])->name('automations.update-config');
     });
 });
