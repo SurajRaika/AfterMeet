@@ -201,3 +201,42 @@ it('can process conditional branching under ConditionNode', function () {
     expect($executedNodeIdsB)->toContain('node-1', 'node-2', 'node-4');
     expect($executedNodeIdsB)->not->toContain('node-3');
 });
+
+it('can process custom intent detection stages and prompt extra context', function () {
+    $graph = [
+        'nodes' => [
+            [
+                'id' => 'node-1',
+                'type' => 'intent',
+                'properties' => [
+                    'stages' => [
+                        ['name' => 'book_call', 'description' => 'The prospect wants to schedule a call or meet.'],
+                        ['name' => 'not_now', 'description' => 'The prospect is busy or wants to connect later.'],
+                    ],
+                    'extra_context' => 'Treat schedule requests as high priority',
+                ]
+            ],
+        ],
+        'edges' => []
+    ];
+
+    $workflow = Workflow::create([
+        'tenant_id' => $this->user->organization_id ?? $this->user->id,
+        'name' => 'Intent Stage Flow',
+        'trigger_type' => 'manual',
+        'graph' => $graph,
+        'is_active' => true,
+    ]);
+
+    $executor = new WorkflowExecutor();
+
+    // Positive Match Case
+    $runA = $executor->execute($workflow, [
+        'message' => 'Sure, let us schedule a meet next Tuesday.',
+    ]);
+
+    expect($runA->status)->toBe('completed');
+    expect($runA->output['intent'])->toBe('book_call');
+    expect($runA->output['confidence_score'])->toBe(0.95);
+    expect($runA->output['extra_context_applied'])->toBe('Treat schedule requests as high priority');
+});

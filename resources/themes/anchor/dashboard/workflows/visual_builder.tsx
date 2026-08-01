@@ -426,18 +426,69 @@ export default function VisualWorkflowBuilder() {
               )}
 
               {selectedNode.type === 'intent' && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Expected Intent</label>
-                    <select
-                      value={selectedNode.data?.properties?.intent_expected || 'positive'}
-                      onChange={e => updateNodeProperty(selectedNode.id, 'intent_expected', e.target.value)}
-                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                    >
-                      <option value="positive">Positive</option>
-                      <option value="negative">Negative</option>
-                      <option value="neutral">Neutral</option>
-                    </select>
+                    <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1">AI Prompt Extra Context</label>
+                    <p className="text-[10px] text-zinc-400 mb-1.5">Add background instructions, custom rules, or past logs for the AI agent.</p>
+                    <textarea
+                      rows={4}
+                      value={selectedNode.data?.properties?.extra_context || ''}
+                      placeholder="e.g. Prioritize scheduling calls. Ignore signature footers."
+                      onChange={e => updateNodeProperty(selectedNode.id, 'extra_context', e.target.value)}
+                      className="block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono"
+                    />
+                  </div>
+
+                  <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Stages & Descriptions</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentStages = selectedNode.data?.properties?.stages || [
+                            { name: 'positive', description: 'Prospect shows positive interest or wants to connect.' },
+                            { name: 'negative', description: 'Prospect declined, said stop, or unsubscribe.' },
+                            { name: 'neutral', description: 'Automated, out of office, or indifferent replies.' }
+                          ];
+                          const name = prompt('Enter custom stage name (e.g. book_call):') || '';
+                          if (name) {
+                            const description = prompt('Enter stage matching description for AI agent:') || '';
+                            updateNodeProperty(selectedNode.id, 'stages', [...currentStages, { name, description }]);
+                          }
+                        }}
+                        className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800"
+                      >
+                        + Add Stage
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-zinc-400 mb-2">Define custom intents and descriptions for AI matching.</p>
+
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {(selectedNode.data?.properties?.stages || [
+                        { name: 'positive', description: 'Prospect shows positive interest or wants to connect.' },
+                        { name: 'negative', description: 'Prospect declined, said stop, or unsubscribe.' },
+                        { name: 'neutral', description: 'Automated, out of office, or indifferent replies.' }
+                      ]).map((stage: any, sIdx: number) => (
+                        <div key={sIdx} className="bg-zinc-50 dark:bg-zinc-950 p-2.5 rounded border border-zinc-200 dark:border-zinc-800 space-y-1 relative group">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentStages = selectedNode.data?.properties?.stages || [
+                                { name: 'positive', description: 'Prospect shows positive interest or wants to connect.' },
+                                { name: 'negative', description: 'Prospect declined, said stop, or unsubscribe.' },
+                                { name: 'neutral', description: 'Automated, out of office, or indifferent replies.' }
+                              ];
+                              updateNodeProperty(selectedNode.id, 'stages', currentStages.filter((_: any, i: number) => i !== sIdx));
+                            }}
+                            className="absolute right-2 top-2 text-red-500 hover:text-red-700 font-bold text-xs"
+                          >
+                            ×
+                          </button>
+                          <div className="font-semibold text-[10px] text-zinc-700 dark:text-zinc-300">Stage: {stage.name}</div>
+                          <div className="text-[10px] text-zinc-500 line-clamp-2" title={stage.description}>{stage.description}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

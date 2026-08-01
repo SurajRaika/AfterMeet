@@ -94,9 +94,12 @@ class WorkflowExecutor
                         throw new Exception("Unknown node type: {$nodeType}");
                     }
 
+                    $nodeProperties = $currentNode['properties'] ?? $currentNode['data']['properties'] ?? [];
+                    $nodeContext = array_merge($context, $nodeProperties);
+
                     /** @var WorkflowNode $nodeInstance */
                     $nodeInstance = new $nodeClass();
-                    $output = $nodeInstance->execute($context);
+                    $output = $nodeInstance->execute($nodeContext);
 
                     // Update context with node output
                     $context = array_merge($context, $output);
