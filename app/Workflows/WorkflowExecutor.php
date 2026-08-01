@@ -19,6 +19,7 @@ class WorkflowExecutor
         'intent' => \App\Workflows\Nodes\IntentNode::class,
         'condition' => \App\Workflows\Nodes\ConditionNode::class,
         'sales_action' => \App\Workflows\Nodes\SalesActionNode::class,
+        'delay' => \App\Workflows\Nodes\DelayNode::class,
     ];
 
     /**

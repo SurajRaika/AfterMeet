@@ -31,6 +31,8 @@ export default function VisualWorkflowBuilder() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
+  const templates = (window as any).templatesList || [];
+
   // Sync to backend's hidden textarea
   const syncToTextarea = (updatedNodes: RfNode[], updatedEdges: RfEdge[]) => {
     const textarea = document.getElementById('graph') as HTMLTextAreaElement;
@@ -137,6 +139,7 @@ export default function VisualWorkflowBuilder() {
       send_email: 'Email Outreach',
       intent: 'Intent Analysis',
       sales_action: 'Update CRM Stage',
+      delay: 'Delay Node',
     };
 
     const defaultProps: Record<string, any> = {
@@ -145,6 +148,7 @@ export default function VisualWorkflowBuilder() {
       send_email: { subject: 'Quick question for {{contact_name}}', body: 'Hi {{contact_name}}' },
       intent: { intent_expected: 'positive' },
       sales_action: { action_type: 'update_stage', stage: 'Engaged' },
+      delay: { wait_days: 2 },
     };
 
     const newNode: RfNode = {
@@ -220,10 +224,28 @@ export default function VisualWorkflowBuilder() {
           <div className="space-y-2">
             <button
               type="button"
+              onClick={() => addNode('send_email')}
+              className="w-full text-left p-3 rounded-lg border border-indigo-100 hover:border-indigo-300 dark:border-indigo-950 dark:hover:border-indigo-900 bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 font-semibold text-xs flex items-center gap-2.5 transition-all shadow-2xs"
+            >
+              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <span>✉️ Send Email Outreach Node</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => addNode('delay')}
+              className="w-full text-left p-3 rounded-lg border border-sky-100 hover:border-sky-300 dark:border-sky-950 dark:hover:border-sky-900 bg-sky-50/50 dark:bg-sky-950/20 text-sky-700 dark:text-sky-400 font-semibold text-xs flex items-center gap-2.5 transition-all shadow-2xs"
+            >
+              <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+              <span>⏱️ Delay / Wait Node</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => addNode('enrichment')}
               className="w-full text-left p-3 rounded-lg border border-purple-100 hover:border-purple-300 dark:border-purple-950 dark:hover:border-purple-900 bg-purple-50/50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400 font-semibold text-xs flex items-center gap-2.5 transition-all shadow-2xs"
             >
-              <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
               <span>✨ AI Enrichment Node</span>
             </button>
 
@@ -234,15 +256,6 @@ export default function VisualWorkflowBuilder() {
             >
               <span className="w-2 h-2 rounded-full bg-amber-500"></span>
               <span>⚖️ Branching Condition Node</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => addNode('send_email')}
-              className="w-full text-left p-3 rounded-lg border border-indigo-100 hover:border-indigo-300 dark:border-indigo-950 dark:hover:border-indigo-900 bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 font-semibold text-xs flex items-center gap-2.5 transition-all shadow-2xs"
-            >
-              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-              <span>✉️ Send Email Outreach Node</span>
             </button>
 
             <button
@@ -416,23 +429,62 @@ export default function VisualWorkflowBuilder() {
                 {selectedNode.type === 'send_email' && (
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-[11px] font-semibold text-zinc-500">Email Subject</label>
-                      <input
-                        type="text"
-                        value={selectedNode.data?.properties?.subject || ''}
-                        placeholder="e.g. Quick question for {{contact_name}}"
-                        onChange={e => updateNodeProperty(selectedNode.id, 'subject', e.target.value)}
-                        className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono"
-                      />
+                      <label className="block text-[11px] font-semibold text-zinc-500">Associate Real Template</label>
+                      <select
+                        value={selectedNode.data?.properties?.template_id || ''}
+                        onChange={e => updateNodeProperty(selectedNode.id, 'template_id', e.target.value)}
+                        className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 cursor-pointer font-medium"
+                      >
+                        <option value="">-- No Template (Custom subject/body below) --</option>
+                        {templates.map((t: any) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
+
+                    {!selectedNode.data?.properties?.template_id ? (
+                      <>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-zinc-500">Email Subject</label>
+                          <input
+                            type="text"
+                            value={selectedNode.data?.properties?.subject || ''}
+                            placeholder="e.g. Quick question for {{contact_name}}"
+                            onChange={e => updateNodeProperty(selectedNode.id, 'subject', e.target.value)}
+                            className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-zinc-500">Email Body Reference</label>
+                          <textarea
+                            rows={4}
+                            value={selectedNode.data?.properties?.body || ''}
+                            placeholder="Is {{company_name}} looking for a solution?"
+                            onChange={e => updateNodeProperty(selectedNode.id, 'body', e.target.value)}
+                            className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono leading-relaxed resize-none"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 rounded-lg text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+                        Personalized email template selected. Variables like contact_name and company_name will be parsed automatically from real data on dispatch.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {selectedNode.type === 'delay' && (
+                  <div className="space-y-3">
                     <div>
-                      <label className="block text-[11px] font-semibold text-zinc-500">Email Body Reference</label>
-                      <textarea
-                        rows={6}
-                        value={selectedNode.data?.properties?.body || ''}
-                        placeholder="Is {{company_name}} looking for a solution?"
-                        onChange={e => updateNodeProperty(selectedNode.id, 'body', e.target.value)}
-                        className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono leading-relaxed resize-none"
+                      <label className="block text-[11px] font-semibold text-zinc-500">Wait Delay (Days)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={selectedNode.data?.properties?.wait_days || '2'}
+                        onChange={e => updateNodeProperty(selectedNode.id, 'wait_days', e.target.value)}
+                        className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
                       />
                     </div>
                   </div>

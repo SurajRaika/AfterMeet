@@ -1,4 +1,8 @@
 <x-layouts.app>
+    <script>
+        window.templatesList = @json($templates);
+    </script>
+
     <x-app.container class="lg:space-y-6">
         <div class="flex items-center justify-between pb-5 border-b border-zinc-200 dark:border-zinc-800">
             <x-app.heading

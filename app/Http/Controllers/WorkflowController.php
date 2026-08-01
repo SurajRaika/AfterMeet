@@ -26,6 +26,9 @@ class WorkflowController extends Controller
      */
     public function create()
     {
+        $tenantId = auth()->user()->organization_id ?? auth()->id();
+        $templates = \App\Models\Template::where('tenant_id', $tenantId)->latest()->get();
+
         // Provide a beautiful default graph JSON
         $defaultGraph = json_encode([
             'nodes' => [
@@ -93,7 +96,7 @@ class WorkflowController extends Controller
             ]
         ], JSON_PRETTY_PRINT);
 
-        return view('theme::dashboard.workflows.create', compact('defaultGraph'));
+        return view('theme::dashboard.workflows.create', compact('defaultGraph', 'templates'));
     }
 
     /**
@@ -143,8 +146,9 @@ class WorkflowController extends Controller
         $tenantId = auth()->user()->organization_id ?? auth()->id();
         $workflow = Workflow::where('tenant_id', $tenantId)->findOrFail($id);
         $graphJson = json_encode($workflow->graph, JSON_PRETTY_PRINT);
+        $templates = \App\Models\Template::where('tenant_id', $tenantId)->latest()->get();
 
-        return view('theme::dashboard.workflows.edit', compact('workflow', 'graphJson'));
+        return view('theme::dashboard.workflows.edit', compact('workflow', 'graphJson', 'templates'));
     }
 
     /**
