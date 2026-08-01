@@ -83,6 +83,9 @@ Route::middleware('auth')->group(function () {
         ])->except(['show']);
 
         // Workflows V1 Engine routes
+        Route::get('automation-templates', [WorkflowController::class, 'templatesIndex'])->name('workflows.templates.index');
+        Route::post('automation-templates/{templateId}/deploy', [WorkflowController::class, 'deployTemplate'])->name('workflows.templates.deploy');
+
         Route::resource('workflows', WorkflowController::class)->names([
             'index' => 'workflows.index',
             'create' => 'workflows.create',

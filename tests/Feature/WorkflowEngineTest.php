@@ -240,3 +240,60 @@ it('can process custom intent detection stages and prompt extra context', functi
     expect($runA->output['confidence_score'])->toBe(0.95);
     expect($runA->output['extra_context_applied'])->toBe('Treat schedule requests as high priority');
 });
+
+it('can view and deploy AI Smart Inbox Assistant automation template and verify full execution', function () {
+    $this->actingAs($this->user);
+
+    // 1. Visit index page
+    $response = $this->get(route('workflows.templates.index'));
+    $response->assertStatus(200);
+    $response->assertSee('AI Smart Inbox Assistant');
+
+    // 2. Deploy template
+    $response = $this->post(route('workflows.templates.deploy', 'ai_smart_inbox_assistant'));
+    $response->assertRedirect(route('workflows.index'));
+
+    $this->assertDatabaseHas('workflows', [
+        'name' => 'AI Smart Inbox Assistant (Deployed)',
+        'trigger_type' => 'email_event',
+    ]);
+
+    $workflow = Workflow::where('name', 'AI Smart Inbox Assistant (Deployed)')->first();
+
+    // 3. Create a test Prospect context
+    $prospect = Prospect::create([
+        'tenant_id' => $this->user->organization_id ?? $this->user->id,
+        'company_name' => 'Stark Industries',
+        'contact_name' => 'Tony Stark',
+        'contact_email' => 'tony@stark.com',
+        'status' => 'new',
+        'stage' => 'New',
+    ]);
+
+    // 4. Execute the deployed template with an interested reply message
+    $executor = new WorkflowExecutor();
+    $run = $executor->execute($workflow, [
+        'message' => 'Sure, we can schedule a meet next Tuesday to discuss automation.',
+    ], $prospect);
+
+    // The flow should successfully execute:
+    // Enrichment (node 1) -> Email outreach (node 2) -> Intent Analysis (node 3) -> Branch Match 'book_call' -> Mark as Converted (node 4)
+    expect($run->status)->toBe('completed');
+    expect($run->output['company_size'])->toBe('500'); // Enriched
+    expect($run->output['sent'])->toBeTrue(); // Email sent
+    expect($run->output['intent'])->toBe('book_call'); // Intent matched custom stage
+    expect($run->output['action_taken'])->toBe('update_stage'); // Executed node 4
+    expect($run->output['applied'])->toBeTrue();
+
+    // Verify Prospect stage is automatically updated to 'Converted'!
+    $prospect->refresh();
+    expect($prospect->stage)->toBe('Converted');
+
+    // Verify exactly 4 steps were executed in the run (node 1, 2, 3, 4)
+    $stepRuns = $run->stepRuns()->orderBy('id')->get();
+    expect($stepRuns)->toHaveCount(4);
+    expect($stepRuns[0]->node_id)->toBe('1'); // Enrichment
+    expect($stepRuns[1]->node_id)->toBe('2'); // Send Email
+    expect($stepRuns[2]->node_id)->toBe('3'); // Intent Analysis
+    expect($stepRuns[3]->node_id)->toBe('4'); // Sales Action
+});
