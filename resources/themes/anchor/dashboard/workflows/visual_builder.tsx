@@ -1,149 +1,206 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
+import ReactFlow, {
+  MiniMap,
+  Controls,
+  Background,
+  useNodesState,
+  useEdgesState,
+  addEdge as rfAddEdge,
+  Connection,
+  Edge as RfEdge,
+  Node as RfNode,
+} from 'reactflow';
 
-interface Node {
-  id: string;
-  type: string;
-  label?: string;
-  properties?: Record<string, any>;
+import 'reactflow/dist/style.css';
+
+interface NodeProperties {
+  condition_field?: string;
+  condition_operator?: string;
+  condition_value?: string;
+  subject?: string;
+  body?: string;
+  action_type?: string;
+  stage?: string;
+  status?: string;
+  intent_expected?: string;
 }
 
-interface Edge {
-  from: string;
-  to: string;
-  condition?: string;
-}
-
-export default function VisualBuilder() {
-  // Read initial graph from window or fallback to default template
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+export default function VisualWorkflowBuilder() {
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
+  // Sync to backend's hidden textarea
+  const syncToTextarea = (updatedNodes: RfNode[], updatedEdges: RfEdge[]) => {
+    const textarea = document.getElementById('graph') as HTMLTextAreaElement;
+    if (textarea) {
+      const serializedNodes = updatedNodes.map(n => ({
+        id: n.id,
+        type: n.type || 'enrichment',
+        label: n.data?.label || n.id,
+        properties: n.data?.properties || {},
+        position: n.position,
+      }));
+
+      const serializedEdges = updatedEdges.map(e => ({
+        from: e.source,
+        to: e.target,
+        condition: e.label || undefined,
+      }));
+
+      textarea.value = JSON.stringify({ nodes: serializedNodes, edges: serializedEdges }, null, 2);
+    }
+  };
+
+  // Load initial graph
   useEffect(() => {
     try {
-      const existingInput = document.getElementById('graph') as HTMLTextAreaElement;
-      if (existingInput && existingInput.value) {
-        const parsed = JSON.parse(existingInput.value);
+      const textarea = document.getElementById('graph') as HTMLTextAreaElement;
+      if (textarea && textarea.value) {
+        const parsed = JSON.parse(textarea.value);
         if (parsed.nodes) {
-          setNodes(parsed.nodes);
+          const rfNodes = parsed.nodes.map((n: any, idx: number) => ({
+            id: String(n.id),
+            type: n.type || 'enrichment',
+            data: { label: n.label || n.type, properties: n.properties || {} },
+            position: n.position || { x: 100 + (idx * 150), y: 150 + (idx * 50) },
+          }));
+          setNodes(rfNodes);
         }
         if (parsed.edges) {
-          setEdges(parsed.edges);
+          const rfEdges = parsed.edges.map((e: any, idx: number) => ({
+            id: `e-${e.from}-${e.to}-${idx}`,
+            source: String(e.from),
+            target: String(e.to),
+            label: e.condition || undefined,
+            animated: true,
+          }));
+          setEdges(rfEdges);
         }
       } else {
-        // Default template
-        setNodes([
-          { id: '1', type: 'enrichment', label: 'AI Enrichment', properties: {} },
-          { id: '2', type: 'condition', label: 'Branching Check', properties: { condition_field: 'company_size', condition_operator: '>', condition_value: '100' } },
-          { id: '3', type: 'send_email', label: 'Send Email Outreach', properties: { subject: 'Hey {{contact_name}}', body: 'We saw you are from {{company_name}}!' } },
-          { id: '4', type: 'sales_action', label: 'Sales Status Update', properties: { action_type: 'update_stage', stage: 'Engaged' } },
-        ]);
-        setEdges([
-          { from: '1', to: '2' },
-          { from: '2', to: '3', condition: 'true' },
-          { from: '2', to: '4', condition: 'false' },
-        ]);
+        // Default nodes
+        const defaultNodes: RfNode[] = [
+          { id: '1', type: 'enrichment', data: { label: 'AI Enrichment', properties: {} }, position: { x: 100, y: 100 } },
+          { id: '2', type: 'condition', data: { label: 'Branch Check', properties: { condition_field: 'company_size', condition_operator: '>', condition_value: '100' } }, position: { x: 300, y: 100 } },
+          { id: '3', type: 'send_email', data: { label: 'Email Outreach', properties: { subject: 'Hi {{contact_name}}', body: 'We saw you are from {{company_name}}!' } }, position: { x: 550, y: 50 } },
+          { id: '4', type: 'sales_action', data: { label: 'Update CRM Stage', properties: { action_type: 'update_stage', stage: 'Engaged' } }, position: { x: 550, y: 250 } },
+        ];
+        const defaultEdges: RfEdge[] = [
+          { id: 'e1-2', source: '1', target: '2', animated: true },
+          { id: 'e2-3', source: '2', target: '3', label: 'true', animated: true },
+          { id: 'e2-4', source: '2', target: '4', label: 'false', animated: true },
+        ];
+        setNodes(defaultNodes);
+        setEdges(defaultEdges);
+        syncToTextarea(defaultNodes, defaultEdges);
       }
     } catch (e) {
-      console.error('Failed to parse initial graph JSON:', e);
+      console.error('Failed to load initial graph JSON:', e);
     }
   }, []);
 
-  // Sync to parent textarea whenever nodes or edges change
-  useEffect(() => {
-    const textarea = document.getElementById('graph') as HTMLTextAreaElement;
-    if (textarea) {
-      const graphData = { nodes, edges };
-      textarea.value = JSON.stringify(graphData, null, 2);
+  // Handle connects
+  const onConnect = useCallback((connection: Connection) => {
+    let label: string | undefined;
+    const sourceNode = nodes.find(n => n.id === connection.source);
+    if (sourceNode?.type === 'condition') {
+      label = prompt('Enter condition label for this branch (e.g. true / false):') || 'true';
     }
+
+    setEdges((eds) => {
+      const nextEds = rfAddEdge({ ...connection, label, animated: true }, eds);
+      syncToTextarea(nodes, nextEds);
+      return nextEds;
+    });
+  }, [nodes, setEdges]);
+
+  // Handle dragging/moving nodes
+  const onNodeDragStop = useCallback(() => {
+    syncToTextarea(nodes, edges);
   }, [nodes, edges]);
+
+  // Selected node callback
+  const onNodeClick = useCallback((_: any, node: RfNode) => {
+    setSelectedNodeId(node.id);
+  }, []);
 
   const addNode = (type: string) => {
     const newId = String(Date.now());
     const labelMap: Record<string, string> = {
-      enrichment: 'AI Enrichment Node',
-      condition: 'Branch Check Node',
-      send_email: 'Email Dispatch Node',
-      intent: 'Intent Analysis Node',
-      sales_action: 'Sales CRM Action Node',
+      enrichment: 'AI Enrichment',
+      condition: 'Branch Check',
+      send_email: 'Email Outreach',
+      intent: 'Intent Analysis',
+      sales_action: 'Update CRM Stage',
     };
 
     const defaultProps: Record<string, any> = {
       enrichment: {},
       condition: { condition_field: 'company_size', condition_operator: '>', condition_value: '100' },
-      send_email: { subject: 'Follow up', body: 'Hi {{contact_name}}' },
+      send_email: { subject: 'Quick question for {{contact_name}}', body: 'Hi {{contact_name}}' },
       intent: { intent_expected: 'positive' },
       sales_action: { action_type: 'update_stage', stage: 'Engaged' },
     };
 
-    const newNode: Node = {
+    const newNode: RfNode = {
       id: newId,
       type,
-      label: labelMap[type] || 'Custom Node',
-      properties: defaultProps[type] || {},
+      data: { label: labelMap[type] || 'New Node', properties: defaultProps[type] || {} },
+      position: { x: 150, y: 150 },
     };
 
-    setNodes(prev => [...prev, newNode]);
+    setNodes(prev => {
+      const next = [...prev, newNode];
+      syncToTextarea(next, edges);
+      return next;
+    });
     setSelectedNodeId(newId);
   };
 
   const deleteNode = (id: string) => {
-    setNodes(prev => prev.filter(n => fNodeId(n) !== id));
-    setEdges(prev => prev.filter(e => e.from !== id && e.to !== id));
+    setNodes(prev => {
+      const nextNodes = prev.filter(n => n.id !== id);
+      setEdges(eds => {
+        const nextEds = eds.filter(e => e.source !== id && e.target !== id);
+        syncToTextarea(nextNodes, nextEds);
+        return nextEds;
+      });
+      return nextNodes;
+    });
     if (selectedNodeId === id) {
       setSelectedNodeId(null);
     }
   };
 
-  const fNodeId = (n: Node) => String(n.id);
-
-  const addEdge = (fromId: string, toId: string, condition?: string) => {
-    if (fromId === toId) return;
-    // Avoid duplicate edges
-    const exists = edges.some(e => e.from === fromId && e.to === toId);
-    if (exists) return;
-
-    const newEdge: Edge = { from: fromId, to: toId };
-    if (condition) {
-      newEdge.condition = condition;
-    }
-    setEdges(prev => [...prev, newEdge]);
-  };
-
-  const removeEdge = (index: number) => {
-    setEdges(prev => prev.filter((_, i) => i !== index));
-  };
-
   const updateNodeProperty = (nodeId: string, key: string, value: any) => {
-    setNodes(prev =>
-      prev.map(n => {
-        if (fNodeId(n) === nodeId) {
-          return {
-            ...n,
-            properties: {
-              ...(n.properties || {}),
-              [key]: value,
-            },
-          };
+    setNodes(prev => {
+      const next = prev.map(n => {
+        if (n.id === nodeId) {
+          const props = { ...(n.data?.properties || {}), [key]: value };
+          return { ...n, data: { ...n.data, properties: props } };
         }
         return n;
-      })
-    );
+      });
+      syncToTextarea(next, edges);
+      return next;
+    });
   };
 
   const updateNodeLabel = (nodeId: string, label: string) => {
-    setNodes(prev =>
-      prev.map(n => {
-        if (fNodeId(n) === nodeId) {
-          return { ...n, label };
+    setNodes(prev => {
+      const next = prev.map(n => {
+        if (n.id === nodeId) {
+          return { ...n, data: { ...n.data, label } };
         }
         return n;
-      })
-    );
+      });
+      syncToTextarea(next, edges);
+      return next;
+    });
   };
 
-  const selectedNode = nodes.find(n => fNodeId(n) === selectedNodeId);
+  const selectedNode = nodes.find(n => n.id === selectedNodeId);
 
   return (
     <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-zinc-50 dark:bg-zinc-950 shadow-sm flex flex-col lg:flex-row h-[700px]">
@@ -153,7 +210,7 @@ export default function VisualBuilder() {
         <div className="space-y-4">
           <div>
             <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">1. Add Action Nodes</h3>
-            <p className="text-[11px] text-zinc-500 mb-3">Click any node below to place it into the execution flow canvas.</p>
+            <p className="text-[11px] text-zinc-500 mb-3 font-medium">Click any node below to place it into the React Flow canvas.</p>
           </div>
 
           <div className="space-y-2">
@@ -162,7 +219,7 @@ export default function VisualBuilder() {
               onClick={() => addNode('enrichment')}
               className="w-full text-left p-3 rounded-lg border border-purple-100 hover:border-purple-300 dark:border-purple-950 dark:hover:border-purple-900 bg-purple-50/50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400 font-semibold text-xs flex items-center gap-2.5 transition-all shadow-2xs"
             >
-              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+              <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
               <span>✨ AI Enrichment Node</span>
             </button>
 
@@ -205,290 +262,208 @@ export default function VisualBuilder() {
         </div>
 
         <div className="border-t border-zinc-100 dark:border-zinc-800 pt-4">
-          <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider mb-2">Node Connections ({edges.length})</div>
-          <div className="max-h-40 overflow-y-auto space-y-1">
-            {edges.map((edge, index) => {
-              const srcNode = nodes.find(n => fNodeId(n) === edge.from);
-              const destNode = nodes.find(n => fNodeId(n) === edge.to);
-              return (
-                <div key={index} className="flex items-center justify-between text-[11px] bg-zinc-50 dark:bg-zinc-950 border border-zinc-150 dark:border-zinc-800 px-2 py-1 rounded">
-                  <span className="truncate max-w-[120px]" title={`${srcNode?.label || 'Node'} -> ${destNode?.label || 'Node'}`}>
-                    {srcNode?.label || edge.from} &rarr; {destNode?.label || edge.to}
-                    {edge.condition && <span className="text-[9px] text-amber-600 font-semibold ml-1">({edge.condition})</span>}
-                  </span>
-                  <button type="button" onClick={() => removeEdge(index)} className="text-red-500 hover:text-red-700 font-bold ml-1">×</button>
-                </div>
-              );
-            })}
+          <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider mb-2">Instructions</div>
+          <div className="text-[10px] text-zinc-500 space-y-1 leading-relaxed">
+            <p>• Drag nodes to arrange them.</p>
+            <p>• Click and drag from one node handle to another to create connections.</p>
+            <p>• Click on any card to edit its properties.</p>
           </div>
         </div>
       </div>
 
-      {/* 2. VISUAL CANVAS GRAPH AREA (CENTER) */}
-      <div className="flex-1 p-6 overflow-y-auto flex flex-col">
-        <div className="mb-4">
-          <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">2. Node Execution flow Canvas</h3>
-          <p className="text-[11px] text-zinc-500">Configure connections and click cards to modify properties.</p>
-        </div>
-
-        {/* Node Cards Layout Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 content-start">
-          {nodes.map(node => {
-            const isSelected = selectedNodeId === fNodeId(node);
-            const borderColors: Record<string, string> = {
-              enrichment: 'border-purple-200 dark:border-purple-900/60',
-              condition: 'border-amber-200 dark:border-amber-900/60',
-              send_email: 'border-indigo-200 dark:border-indigo-900/60',
-              intent: 'border-pink-200 dark:border-pink-900/60',
-              sales_action: 'border-emerald-200 dark:border-emerald-900/60',
-            };
-
-            const headerColors: Record<string, string> = {
-              enrichment: 'bg-purple-50 text-purple-800 dark:bg-purple-950/40 dark:text-purple-400',
-              condition: 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400',
-              send_email: 'bg-indigo-50 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-400',
-              intent: 'bg-pink-50 text-pink-800 dark:bg-pink-950/40 dark:text-pink-400',
-              sales_action: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400',
-            };
-
-            const nodeEdges = edges.filter(e => e.from === fNodeId(node));
-
-            return (
-              <div
-                key={fNodeId(node)}
-                onClick={() => setSelectedNodeId(fNodeId(node))}
-                className={`cursor-pointer rounded-xl border bg-white dark:bg-zinc-900 overflow-hidden shadow-xs hover:shadow transition-all ${
-                  isSelected ? 'ring-2 ring-indigo-500 border-transparent' : borderColors[node.type] || 'border-zinc-200'
-                }`}
-              >
-                {/* Card Header */}
-                <div className={`px-4 py-2 text-xs font-bold flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 ${headerColors[node.type]}`}>
-                  <span className="capitalize">{node.type.replace('_', ' ')} Node</span>
-                  <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      onClick={() => deleteNode(fNodeId(node))}
-                      className="text-red-500 hover:text-red-700 bg-white dark:bg-zinc-850 p-1 rounded border border-red-100 dark:border-red-950 hover:bg-red-50 transition"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div className="p-4 space-y-3">
-                  <div>
-                    <input
-                      type="text"
-                      value={node.label || ''}
-                      onChange={e => updateNodeLabel(fNodeId(node), e.target.value)}
-                      onClick={e => e.stopPropagation()}
-                      className="w-full text-xs font-semibold text-zinc-800 dark:text-zinc-200 border-none bg-zinc-50 dark:bg-zinc-950 p-1.5 rounded focus:ring-1 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  {/* Connect Out Panel */}
-                  <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase">Connect to</span>
-                    <select
-                      onChange={e => {
-                        const targetId = e.target.value;
-                        if (targetId) {
-                          let cond: string | undefined;
-                          if (node.type === 'condition') {
-                            cond = prompt('Enter condition value for this connection (e.g., true, false):') || 'true';
-                          }
-                          addEdge(fNodeId(node), targetId, cond);
-                          e.target.value = ''; // reset selection
-                        }
-                      }}
-                      className="text-[10px] rounded border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-700 dark:text-zinc-300 py-1"
-                    >
-                      <option value="">-- select target --</option>
-                      {nodes
-                        .filter(n => fNodeId(n) !== fNodeId(node))
-                        .map(n => (
-                          <option key={fNodeId(n)} value={fNodeId(n)}>
-                            {n.label || `${n.type} (#${n.id})`}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  {/* Existing Outputs list */}
-                  {nodeEdges.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {nodeEdges.map((edge, i) => {
-                        const dest = nodes.find(n => fNodeId(n) === edge.to);
-                        return (
-                          <span key={i} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                            &rarr; {dest?.label || edge.to}
-                            {edge.condition && ` (${edge.condition})`}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {/* 2. VISUAL CANVAS GRAPH AREA (CENTER - REACT FLOW) */}
+      <div className="flex-1 h-full relative">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodeClick={onNodeClick}
+          onNodeDragStop={onNodeDragStop}
+          fitView
+        >
+          <Controls />
+          <MiniMap />
+          <Background gap={12} size={1} />
+        </ReactFlow>
       </div>
 
       {/* 3. NODE PROPERTIES SIDEBAR (RIGHT) */}
-      <div className="w-full lg:w-72 bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 p-4 space-y-4">
-        <div>
-          <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">3. Node Properties Config</h3>
+      <div className="w-full lg:w-80 bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 p-4 space-y-4 overflow-y-auto flex flex-col justify-between">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">2. Node Properties Config</h3>
+          </div>
+
+          {selectedNode ? (
+            <div className="space-y-4">
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-150 dark:border-zinc-800 rounded-lg">
+                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wide">Selected Node:</span>
+                <span className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mt-0.5 capitalize">{selectedNode.type} Node (ID: {selectedNode.id})</span>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Node Title</label>
+                <input
+                  type="text"
+                  value={selectedNode.data?.label || ''}
+                  onChange={e => updateNodeLabel(selectedNode.id, e.target.value)}
+                  className="w-full text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 p-1.5 rounded focus:ring-1 focus:ring-indigo-500 bg-zinc-50 dark:bg-zinc-950"
+                />
+              </div>
+
+              {/* Render Specific Node Properties Editors */}
+              {selectedNode.type === 'condition' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Condition Field</label>
+                    <input
+                      type="text"
+                      value={selectedNode.data?.properties?.condition_field || 'company_size'}
+                      onChange={e => updateNodeProperty(selectedNode.id, 'condition_field', e.target.value)}
+                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Operator</label>
+                    <select
+                      value={selectedNode.data?.properties?.condition_operator || '>'}
+                      onChange={e => updateNodeProperty(selectedNode.id, 'condition_operator', e.target.value)}
+                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                    >
+                      <option value=">">&gt; Greater Than</option>
+                      <option value="<">&lt; Less Than</option>
+                      <option value="==">== Equal To</option>
+                      <option value="!=">!= Not Equal</option>
+                      <option value="contains">Contains Substring</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Condition Value</label>
+                    <input
+                      type="text"
+                      value={selectedNode.data?.properties?.condition_value || '100'}
+                      onChange={e => updateNodeProperty(selectedNode.id, 'condition_value', e.target.value)}
+                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {selectedNode.type === 'send_email' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Email Subject</label>
+                    <input
+                      type="text"
+                      value={selectedNode.data?.properties?.subject || ''}
+                      placeholder="e.g. Quick question for {{contact_name}}"
+                      onChange={e => updateNodeProperty(selectedNode.id, 'subject', e.target.value)}
+                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Email Body Reference</label>
+                    <textarea
+                      rows={6}
+                      value={selectedNode.data?.properties?.body || ''}
+                      placeholder="Is {{company_name}} looking for a solution?"
+                      onChange={e => updateNodeProperty(selectedNode.id, 'body', e.target.value)}
+                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono leading-relaxed resize-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {selectedNode.type === 'sales_action' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Action Type</label>
+                    <select
+                      value={selectedNode.data?.properties?.action_type || 'update_stage'}
+                      onChange={e => updateNodeProperty(selectedNode.id, 'action_type', e.target.value)}
+                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                    >
+                      <option value="update_stage">Update Prospect Stage</option>
+                      <option value="update_status">Update Prospect Status</option>
+                    </select>
+                  </div>
+                  {selectedNode.data?.properties?.action_type !== 'update_status' ? (
+                    <div>
+                      <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Target Stage</label>
+                      <select
+                        value={selectedNode.data?.properties?.stage || 'Engaged'}
+                        onChange={e => updateNodeProperty(selectedNode.id, 'stage', e.target.value)}
+                        className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                      >
+                        <option value="New">New</option>
+                        <option value="Researching">Researching</option>
+                        <option value="Ready to Contact">Ready to Contact</option>
+                        <option value="Contacted">Contacted</option>
+                        <option value="Engaged">Engaged</option>
+                        <option value="Connected">Connected</option>
+                        <option value="Converted">Converted</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Target Status</label>
+                      <select
+                        value={selectedNode.data?.properties?.status || 'active'}
+                        onChange={e => updateNodeProperty(selectedNode.id, 'status', e.target.value)}
+                        className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                      >
+                        <option value="new">new</option>
+                        <option value="active">active</option>
+                        <option value="qualified">qualified</option>
+                        <option value="junk">junk</option>
+                        <option value="paused">paused</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {selectedNode.type === 'intent' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Expected Intent</label>
+                    <select
+                      value={selectedNode.data?.properties?.intent_expected || 'positive'}
+                      onChange={e => updateNodeProperty(selectedNode.id, 'intent_expected', e.target.value)}
+                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                    >
+                      <option value="positive">Positive</option>
+                      <option value="negative">Negative</option>
+                      <option value="neutral">Neutral</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {selectedNode.type === 'enrichment' && (
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-500">
+                  This enrichment node leverages AI to automatically query sales intelligence APIs and lookup company domain information (such as company size, country, industry).
+                </div>
+              )}
+
+            </div>
+          ) : (
+            <div className="text-center text-zinc-400 text-xs py-12">
+              Click on any node in the React Flow canvas to configure its settings.
+            </div>
+          )}
         </div>
 
-        {selectedNode ? (
-          <div className="space-y-4">
-            <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-150 dark:border-zinc-800 rounded-lg">
-              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wide">Selected:</span>
-              <span className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mt-0.5 capitalize">{selectedNode.type} Node</span>
-            </div>
-
-            {/* Render Specific Node Properties Editors */}
-            {selectedNode.type === 'condition' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Condition Field</label>
-                  <input
-                    type="text"
-                    value={selectedNode.properties?.condition_field || 'company_size'}
-                    onChange={e => updateNodeProperty(fNodeId(selectedNode), 'condition_field', e.target.value)}
-                    className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Operator</label>
-                  <select
-                    value={selectedNode.properties?.condition_operator || '>'}
-                    onChange={e => updateNodeProperty(fNodeId(selectedNode), 'condition_operator', e.target.value)}
-                    className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                  >
-                    <option value=">">&gt; Greater Than</option>
-                    <option value="<">&lt; Less Than</option>
-                    <option value="==">== Equal To</option>
-                    <option value="!=">!= Not Equal</option>
-                    <option value="contains">Contains Substring</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Condition Value</label>
-                  <input
-                    type="text"
-                    value={selectedNode.properties?.condition_value || '100'}
-                    onChange={e => updateNodeProperty(fNodeId(selectedNode), 'condition_value', e.target.value)}
-                    className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                  />
-                </div>
-              </div>
-            )}
-
-            {selectedNode.type === 'send_email' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Email Subject</label>
-                  <input
-                    type="text"
-                    value={selectedNode.properties?.subject || ''}
-                    placeholder="e.g. Quick question for {{contact_name}}"
-                    onChange={e => updateNodeProperty(fNodeId(selectedNode), 'subject', e.target.value)}
-                    className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Email Body Reference</label>
-                  <textarea
-                    rows={6}
-                    value={selectedNode.properties?.body || ''}
-                    placeholder="Is {{company_name}} looking for a solution?"
-                    onChange={e => updateNodeProperty(fNodeId(selectedNode), 'body', e.target.value)}
-                    className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono leading-relaxed resize-none"
-                  />
-                </div>
-              </div>
-            )}
-
-            {selectedNode.type === 'sales_action' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Action Type</label>
-                  <select
-                    value={selectedNode.properties?.action_type || 'update_stage'}
-                    onChange={e => updateNodeProperty(fNodeId(selectedNode), 'action_type', e.target.value)}
-                    className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                  >
-                    <option value="update_stage">Update Prospect Stage</option>
-                    <option value="update_status">Update Prospect Status</option>
-                  </select>
-                </div>
-                {selectedNode.properties?.action_type !== 'update_status' ? (
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Target Stage</label>
-                    <select
-                      value={selectedNode.properties?.stage || 'Engaged'}
-                      onChange={e => updateNodeProperty(fNodeId(selectedNode), 'stage', e.target.value)}
-                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                    >
-                      <option value="New">New</option>
-                      <option value="Researching">Researching</option>
-                      <option value="Ready to Contact">Ready to Contact</option>
-                      <option value="Contacted">Contacted</option>
-                      <option value="Engaged">Engaged</option>
-                      <option value="Connected">Connected</option>
-                      <option value="Converted">Converted</option>
-                    </select>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Target Status</label>
-                    <select
-                      value={selectedNode.properties?.status || 'active'}
-                      onChange={e => updateNodeProperty(fNodeId(selectedNode), 'status', e.target.value)}
-                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                    >
-                      <option value="new">new</option>
-                      <option value="active">active</option>
-                      <option value="qualified">qualified</option>
-                      <option value="junk">junk</option>
-                      <option value="paused">paused</option>
-                    </select>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {selectedNode.type === 'intent' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Expected Intent</label>
-                  <select
-                    value={selectedNode.properties?.intent_expected || 'positive'}
-                    onChange={e => updateNodeProperty(fNodeId(selectedNode), 'intent_expected', e.target.value)}
-                    className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                  >
-                    <option value="positive">Positive</option>
-                    <option value="negative">Negative</option>
-                    <option value="neutral">Neutral</option>
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {selectedNode.type === 'enrichment' && (
-              <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-500">
-                This enrichment node leverages AI to automatically query sales intelligence APIs and lookup company domain information (such as company size, country, industry).
-              </div>
-            )}
-
-          </div>
-        ) : (
-          <div className="text-center text-zinc-400 text-xs py-12">
-            Click on any node in the canvas to configure its settings.
-          </div>
+        {selectedNode && (
+          <button
+            type="button"
+            onClick={() => deleteNode(selectedNode.id)}
+            className="w-full py-2 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 rounded-lg text-xs font-bold border border-red-200 dark:border-red-900 transition mt-4"
+          >
+            Delete Selected Node
+          </button>
         )}
       </div>
 
@@ -501,6 +476,6 @@ if (typeof document !== 'undefined') {
   const container = document.getElementById('workflow-visual-builder-root');
   if (container) {
     const root = createRoot(container);
-    root.render(<VisualBuilder />);
+    root.render(<VisualWorkflowBuilder />);
   }
 }
