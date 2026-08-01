@@ -37,14 +37,14 @@
                         <label class="block text-sm font-bold text-zinc-700 dark:text-zinc-300">Workflow JSON Definition</label>
                         <span class="text-xs text-zinc-400">Must be valid JSON formatting.</span>
                     </div>
-                    <textarea name="workflow_definition" rows="18" class="w-full font-mono text-xs border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 rounded-lg p-3" required>{{ old('workflow_definition') ?: '{
+                    <textarea name="workflow_definition" rows="18" class="w-full font-mono text-xs border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 rounded-lg p-3" required>@if(old('workflow_definition')){{ old('workflow_definition') }}@else{
   "start_node_id": "send_initial",
   "nodes": {
     "send_initial": {
       "type": "SendEmailNode",
       "config": {
-        "subject": "Hello {{contact_name}}!",
-        "body": "Hi {{contact_name}},\n\nNice to meet you. Let\'s schedule a talk.\n\nBest,\nOur Team"
+        "subject": "Hello @{{contact_name}}!",
+        "body": "Hi @{{contact_name}},\n\nNice to meet you. Let's schedule a talk.\n\nBest,\nOur Team"
       },
       "next": "wait_3_days"
     },
@@ -56,7 +56,7 @@
       "next": null
     }
   }
-}' }}</textarea>
+}@endif</textarea>
                 </div>
 
                 <div class="pt-4 flex justify-end space-x-3 border-t border-zinc-200 dark:border-zinc-800">
