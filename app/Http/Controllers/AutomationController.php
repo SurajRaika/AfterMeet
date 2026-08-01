@@ -57,6 +57,21 @@ class AutomationController extends Controller
     }
 
     /**
+     * Duplicate an automation.
+     */
+    public function duplicate($id)
+    {
+        $original = Automation::findOrFail($id);
+        $duplicate = $original->replicate();
+        $duplicate->name = $original->name . ' (Copy)';
+        $duplicate->is_active = false; // Duplicated templates start as disabled
+        $duplicate->save();
+
+        return redirect()->route('automations.index')
+            ->with('success', "Automation template '{$original->name}' duplicated successfully.");
+    }
+
+    /**
      * View run logs for an automation.
      */
     public function runs($id)

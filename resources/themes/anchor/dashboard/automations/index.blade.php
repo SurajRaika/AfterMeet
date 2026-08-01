@@ -81,21 +81,8 @@
                             </div>
                         </div>
 
-                        <!-- Manual testing and Triggering -->
-                        <div class="border-t border-zinc-100 dark:border-zinc-800/80 pt-4 mt-2">
-                            <form action="{{ route('automations.trigger', $automation->id) }}" method="POST" class="flex items-center gap-2 mb-4">
-                                @csrf
-                                <select name="prospect_id" required class="flex-1 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 py-1.5 px-3 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                    <option value="" disabled selected>Select Test Prospect</option>
-                                    @foreach($prospects as $prospect)
-                                        <option value="{{ $prospect->id }}">{{ $prospect->contact_name }} ({{ $prospect->company_name }})</option>
-                                    @endforeach
-                                </select>
-                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs py-1.5 px-3 rounded-lg shadow transition-colors">
-                                    Trigger
-                                </button>
-                            </form>
-
+                        <!-- Template actions and toggles -->
+                        <div class="border-t border-zinc-100 dark:border-zinc-800/80 pt-4 mt-4">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
                                     <!-- Toggle Status form -->
@@ -115,7 +102,14 @@
                                     </form>
                                 </div>
 
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-2.5">
+                                    <form action="{{ route('automations.duplicate', $automation->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-xs font-bold text-emerald-600 hover:text-emerald-950 dark:text-emerald-400 dark:hover:text-emerald-300">
+                                            Duplicate
+                                        </button>
+                                    </form>
+                                    <span class="text-zinc-200 dark:text-zinc-800">|</span>
                                     <a href="{{ route('automations.configure', $automation->id) }}" class="text-xs font-bold text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
                                         Customize
                                     </a>

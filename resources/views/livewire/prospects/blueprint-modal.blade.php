@@ -11,29 +11,29 @@
         <!-- Modal Content -->
         <div class="relative bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded max-w-sm w-full p-4 shadow-lg z-10 space-y-3">
             <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2">
-                <h3 class="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Select Outreach Blueprint</h3>
+                <h3 class="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Select Automation Template</h3>
                 <button @click="$wire.closeBlueprintModal()" class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
                     <x-phosphor-x-bold class="w-3.5 h-3.5" />
                 </button>
             </div>
 
             <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
-                Choose a sequence blueprint to begin contacting this prospect. The first step sequence email will be dispatched immediately.
+                Choose an active automation template to run for this prospect. The execution starts immediately on the queue.
             </p>
 
             <div class="space-y-1 max-h-48 overflow-y-auto">
-                @forelse($this->blueprints as $bp)
+                @forelse($this->automations as $auto)
                     <button
                         type="button"
-                        wire:click="startContacting({{ $bp->id }})"
+                        wire:click="startContacting({{ $auto->id }})"
                         class="w-full text-left px-2.5 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 transition-colors flex items-center justify-between"
                     >
-                        <span>{{ $bp->name }}</span>
+                        <span>{{ $auto->name }}</span>
                         <x-phosphor-caret-right-bold class="w-3 h-3 text-zinc-400" />
                     </button>
                 @empty
                     <div class="text-center py-4 text-[11px] text-zinc-400 dark:text-zinc-500 italic">
-                        No blueprints created yet. Go to <a href="{{ route('blueprints.index') }}" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">Blueprints</a> to create one.
+                        No active automations found. Go to <a href="{{ route('automations.index') }}" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">Automations</a> to create/activate one.
                     </div>
                 @endforelse
             </div>

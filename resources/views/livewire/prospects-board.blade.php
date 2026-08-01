@@ -131,6 +131,11 @@ new class extends Component {
         return Blueprint::where('tenant_id', $this->getTenantId())->get();
     }
 
+    public function getAutomationsProperty()
+    {
+        return \App\Models\Automation::where('is_active', true)->get();
+    }
+
     public function getSelectedViewProperty()
     {
         if ($this->selectedViewId === 'all') {
@@ -234,7 +239,7 @@ new class extends Component {
         $this->isBlueprintModalOpen = false;
     }
 
-    public function startContacting($blueprintId)
+    public function startContacting($automationId)
     {
         if (!$this->selectedProspectId) {
             Notification::make()
@@ -246,22 +251,23 @@ new class extends Component {
         }
 
         $prospect = Prospect::where('tenant_id', $this->getTenantId())->findOrFail($this->selectedProspectId);
-        $blueprint = Blueprint::where('tenant_id', $this->getTenantId())->findOrFail($blueprintId);
+        $automation = \App\Models\Automation::findOrFail($automationId);
+
+        $engine = new \App\Workflows\WorkflowEngine();
+        $engine->start($automation, $prospect, [
+            'trigger' => 'manual_prospects_ui',
+            'triggered_at' => now()->toDateTimeString(),
+        ]);
 
         $prospect->update([
-            'blueprint_id' => $blueprint->id,
-            'current_step_order' => 0,
             'status' => 'active',
         ]);
 
         Notification::make()
-            ->title('Contacting Started')
-            ->body("Blueprint {$blueprint->name} assigned to {$prospect->contact_name}.")
+            ->title('Automation Started')
+            ->body("Automation '{$automation->name}' successfully started for {$prospect->contact_name}.")
             ->success()
             ->send();
-
-        // Dynamically send the first step immediately
-        $this->sendNextStep($prospect->id);
 
         $this->closeBlueprintModal();
     }

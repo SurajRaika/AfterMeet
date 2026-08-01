@@ -85,6 +85,7 @@ Route::middleware('auth')->group(function () {
         Route::get('automations', [\App\Http\Controllers\AutomationController::class, 'index'])->name('automations.index');
         Route::post('automations/{id}/toggle', [\App\Http\Controllers\AutomationController::class, 'toggle'])->name('automations.toggle');
         Route::post('automations/{id}/trigger', [\App\Http\Controllers\AutomationController::class, 'trigger'])->name('automations.trigger');
+        Route::post('automations/{id}/duplicate', [\App\Http\Controllers\AutomationController::class, 'duplicate'])->name('automations.duplicate');
         Route::get('automations/{id}/runs', [\App\Http\Controllers\AutomationController::class, 'runs'])->name('automations.runs');
         Route::post('automations/seed-defaults', [\App\Http\Controllers\AutomationController::class, 'seedDefaults'])->name('automations.seed-defaults');
         Route::delete('automations/{id}', [\App\Http\Controllers\AutomationController::class, 'destroy'])->name('automations.destroy');

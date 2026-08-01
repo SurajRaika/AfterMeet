@@ -166,3 +166,53 @@ test('Test 3 (Event triggers & Webhook delivery): Create prospect and assert web
                $request['prospect']['email'] === 'john@cyberdyne.com';
     });
 });
+
+test('Test 4 (Automation Duplication): Replicate an existing template and verify duplicated record', function () {
+    $user = User::first();
+    $this->actingAs($user);
+
+    $original = Automation::first();
+    expect($original)->not->toBeNull();
+
+    $response = $this->post(route('automations.duplicate', $original->id));
+    $response->assertRedirect(route('automations.index'));
+
+    $duplicate = Automation::where('name', $original->name . ' (Copy)')->first();
+    expect($duplicate)->not->toBeNull();
+    expect($duplicate->is_active)->toBeFalse();
+    expect($duplicate->workflow_definition)->toBe($original->workflow_definition);
+});
+
+test('Test 5 (Manual Trigger): Start an automation manually for a prospect and verify execution', function () {
+    $user = User::first();
+    $this->actingAs($user);
+
+    $prospect = Prospect::create([
+        'tenant_id' => $user->id,
+        'company_name' => 'Duplication Corp',
+        'contact_name' => 'Copy Cat',
+        'contact_email' => 'copy@cat.com',
+        'status' => 'new',
+    ]);
+
+    $automation = Automation::where('name', 'Cold Outreach Sequence')->first();
+    expect($automation)->not->toBeNull();
+
+    // Make it active so it can be used
+    $automation->is_active = true;
+    $automation->save();
+
+    // Post to trigger it
+    $response = $this->post(route('automations.trigger', $automation->id), [
+        'prospect_id' => $prospect->id,
+    ]);
+
+    $response->assertRedirect(route('automations.runs', $automation->id));
+
+    $instance = AutomationInstance::where('prospect_id', $prospect->id)
+        ->where('automation_id', $automation->id)
+        ->first();
+
+    expect($instance)->not->toBeNull();
+    expect($instance->status)->toBe('completed');
+});

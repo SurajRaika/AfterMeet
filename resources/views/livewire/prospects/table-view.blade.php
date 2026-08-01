@@ -6,16 +6,14 @@
                 <th class="px-4 py-2.5 text-left font-semibold text-zinc-500 uppercase tracking-wider">Company</th>
                 <th class="px-4 py-2.5 text-center font-semibold text-zinc-500 uppercase tracking-wider">Status</th>
                 <th class="px-4 py-2.5 text-left font-semibold text-zinc-500 uppercase tracking-wider">Stage</th>
-                <th class="px-4 py-2.5 text-left font-semibold text-zinc-500 uppercase tracking-wider">Blueprint / Sequence</th>
+                <th class="px-4 py-2.5 text-left font-semibold text-zinc-500 uppercase tracking-wider">Active Automation</th>
                 <th class="px-4 py-2.5 text-right font-semibold text-zinc-500 uppercase tracking-wider">Actions</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-950">
             @forelse($this->prospects as $prospect)
                 @php
-                    $currentStep = $prospect->currentStep();
-                    $hasPendingStep = $prospect->blueprint_id && $currentStep;
-                    $isNew = $prospect->status === 'new' || !$prospect->blueprint_id;
+                    $isNew = $prospect->status === 'new';
                     $isActive = $prospect->status === 'active';
                     $isPaused = $prospect->status === 'paused';
                 @endphp
@@ -91,54 +89,35 @@
                         </span>
                     </td>
 
-                    <!-- Sequence Column -->
+                    <!-- Active Automation Column -->
                     <td class="px-4 py-3 whitespace-nowrap text-zinc-500 dark:text-zinc-400">
-                        @if($prospect->blueprint)
-                            <span class="font-semibold text-zinc-700 dark:text-zinc-300">{{ $prospect->blueprint->name }}</span>
-                            <div class="text-[10px] text-zinc-400 mt-0.5">
-                                @if($hasPendingStep)
-                                    Next: Step {{ $prospect->current_step_order + 1 }} ({{ $prospect->currentStep()->template->name ?? 'No template' }})
+                        @php
+                            $latestInstance = \App\Models\AutomationInstance::where('prospect_id', $prospect->id)->with('automation')->latest()->first();
+                        @endphp
+                        @if($latestInstance)
+                            <span class="font-semibold text-zinc-700 dark:text-zinc-300">{{ $latestInstance->automation->name ?? 'N/A' }}</span>
+                            <div class="text-[10px] mt-0.5">
+                                @if($latestInstance->status === 'active')
+                                    <span class="text-blue-600 dark:text-blue-400 font-semibold font-mono">Running ({{ $latestInstance->current_node ?? 'N/A' }})</span>
+                                @elseif($latestInstance->status === 'paused')
+                                    <span class="text-yellow-600 dark:text-yellow-400 font-semibold font-mono">Paused</span>
+                                @elseif($latestInstance->status === 'completed')
+                                    <span class="text-green-600 dark:text-green-400 font-semibold font-mono">Completed</span>
                                 @else
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Sequence Finished</span>
+                                    <span class="text-red-600 dark:text-red-400 font-semibold font-mono">Failed</span>
                                 @endif
                             </div>
                         @else
-                            <span class="text-zinc-400 text-[11px] italic">Not assigned yet</span>
+                            <span class="text-zinc-400 text-[11px] italic">Not started yet</span>
                         @endif
                     </td>
 
                     <!-- Compact Actions Column -->
                     <td class="px-4 py-3 whitespace-nowrap text-right font-medium space-x-1.5">
-                        @if($isNew)
-                            <!-- Start Contacting Button -->
-                            <button type="button" wire:click="openStartContacting({{ $prospect->id }})" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-sm transition-colors" title="Select blueprint and start sequence">
-                                <x-phosphor-paper-plane-tilt-bold class="w-3.5 h-3.5" />
-                                Start Contacting
-                            </button>
-                        @elseif($isActive)
-                            <!-- Pause Button -->
-                            <button type="button" wire:click="pauseContacting({{ $prospect->id }})" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded transition-colors shadow-sm" title="Pause emailing">
-                                <x-phosphor-pause-bold class="w-3.5 h-3.5" />
-                                Pause
-                            </button>
-                            <!-- Send Next Step -->
-                            @if($hasPendingStep)
-                                <button type="button" wire:click="sendNextStep({{ $prospect->id }})" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-sm transition-colors" title="Send Step {{ $prospect->current_step_order + 1 }}">
-                                    <x-phosphor-arrow-right-bold class="w-3.5 h-3.5" />
-                                    Send Next Step
-                                </button>
-                            @else
-                                <button disabled class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700 cursor-not-allowed">
-                                    Finished
-                                </button>
-                            @endif
-                        @elseif($isPaused)
-                            <!-- Resume Button -->
-                            <button type="button" wire:click="resumeContacting({{ $prospect->id }})" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded shadow-sm transition-colors" title="Resume sequence">
-                                <x-phosphor-play-bold class="w-3.5 h-3.5" />
-                                Resume
-                            </button>
-                        @endif
+                        <button type="button" wire:click="openStartContacting({{ $prospect->id }})" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-sm transition-colors" title="Select automation template and start">
+                            <x-phosphor-paper-plane-tilt-bold class="w-3.5 h-3.5" />
+                            Start Automation
+                        </button>
 
                         <span class="text-zinc-200 dark:text-zinc-800">|</span>
                         <a href="{{ route('prospects.timeline', $prospect->id) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors font-semibold" title="View outreach timeline tracking">Timeline</a>
