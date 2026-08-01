@@ -21,6 +21,7 @@ class Prospect extends Model
         'contact_role',
         'status',
         'blueprint_id',
+        'workflow_id',
         'current_step_order',
         'sent_without_correct_condition',
         'last_sent_at',
@@ -45,6 +46,14 @@ class Prospect extends Model
     public function blueprint(): BelongsTo
     {
         return $this->belongsTo(Blueprint::class, 'blueprint_id');
+    }
+
+    /**
+     * Get the workflow assigned to this prospect.
+     */
+    public function workflow(): BelongsTo
+    {
+        return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
     /**
