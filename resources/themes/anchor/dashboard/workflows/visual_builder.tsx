@@ -293,220 +293,324 @@ export default function VisualWorkflowBuilder() {
         </ReactFlow>
       </div>
 
-      {/* 3. NODE PROPERTIES SIDEBAR (RIGHT) */}
-      <div className="w-full lg:w-80 bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 p-4 space-y-4 overflow-y-auto flex flex-col justify-between">
+      {/* 3. N8N-STYLE NODE INSPECTOR SIDEBAR (RIGHT) */}
+      <div className="w-full lg:w-96 bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 p-4 space-y-4 overflow-y-auto flex flex-col justify-between">
         <div className="space-y-4">
           <div>
-            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">2. Node Properties Config</h3>
+            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">n8n Node Inspector</h3>
           </div>
 
           {selectedNode ? (
-            <div className="space-y-4">
-              <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-150 dark:border-zinc-800 rounded-lg">
-                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wide">Selected Node:</span>
-                <span className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mt-0.5 capitalize">{selectedNode.type} Node (ID: {selectedNode.id})</span>
-              </div>
+            <div className="space-y-4 divide-y divide-zinc-100 dark:divide-zinc-850">
 
-              <div>
-                <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Node Title</label>
+              {/* Node Overview Header */}
+              <div className="pb-3 flex items-center justify-between">
+                <div>
+                  <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wide">Selected Node:</span>
+                  <span className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mt-0.5 capitalize">{selectedNode.type} Node (ID: {selectedNode.id})</span>
+                </div>
                 <input
                   type="text"
                   value={selectedNode.data?.label || ''}
                   onChange={e => updateNodeLabel(selectedNode.id, e.target.value)}
-                  className="w-full text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 p-1.5 rounded focus:ring-1 focus:ring-indigo-500 bg-zinc-50 dark:bg-zinc-950"
+                  className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 p-1.5 rounded focus:ring-1 focus:ring-indigo-500 bg-zinc-50 dark:bg-zinc-950 max-w-[120px]"
                 />
               </div>
 
-              {/* Render Specific Node Properties Editors */}
-              {selectedNode.type === 'condition' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Condition Field</label>
-                    <input
-                      type="text"
-                      value={selectedNode.data?.properties?.condition_field || 'company_size'}
-                      onChange={e => updateNodeProperty(selectedNode.id, 'condition_field', e.target.value)}
-                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Operator</label>
-                    <select
-                      value={selectedNode.data?.properties?.condition_operator || '>'}
-                      onChange={e => updateNodeProperty(selectedNode.id, 'condition_operator', e.target.value)}
-                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                    >
-                      <option value=">">&gt; Greater Than</option>
-                      <option value="<">&lt; Less Than</option>
-                      <option value="==">== Equal To</option>
-                      <option value="!=">!= Not Equal</option>
-                      <option value="contains">Contains Substring</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Condition Value</label>
-                    <input
-                      type="text"
-                      value={selectedNode.data?.properties?.condition_value || '100'}
-                      onChange={e => updateNodeProperty(selectedNode.id, 'condition_value', e.target.value)}
-                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {selectedNode.type === 'send_email' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Email Subject</label>
-                    <input
-                      type="text"
-                      value={selectedNode.data?.properties?.subject || ''}
-                      placeholder="e.g. Quick question for {{contact_name}}"
-                      onChange={e => updateNodeProperty(selectedNode.id, 'subject', e.target.value)}
-                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Email Body Reference</label>
-                    <textarea
-                      rows={6}
-                      value={selectedNode.data?.properties?.body || ''}
-                      placeholder="Is {{company_name}} looking for a solution?"
-                      onChange={e => updateNodeProperty(selectedNode.id, 'body', e.target.value)}
-                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono leading-relaxed resize-none"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {selectedNode.type === 'sales_action' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Action Type</label>
-                    <select
-                      value={selectedNode.data?.properties?.action_type || 'update_stage'}
-                      onChange={e => updateNodeProperty(selectedNode.id, 'action_type', e.target.value)}
-                      className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                    >
-                      <option value="update_stage">Update Prospect Stage</option>
-                      <option value="update_status">Update Prospect Status</option>
-                    </select>
-                  </div>
-                  {selectedNode.data?.properties?.action_type !== 'update_status' ? (
-                    <div>
-                      <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Target Stage</label>
-                      <select
-                        value={selectedNode.data?.properties?.stage || 'Engaged'}
-                        onChange={e => updateNodeProperty(selectedNode.id, 'stage', e.target.value)}
-                        className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
-                      >
-                        <option value="New">New</option>
-                        <option value="Researching">Researching</option>
-                        <option value="Ready to Contact">Ready to Contact</option>
-                        <option value="Contacted">Contacted</option>
-                        <option value="Engaged">Engaged</option>
-                        <option value="Connected">Connected</option>
-                        <option value="Converted">Converted</option>
-                      </select>
-                    </div>
+              {/* SECTION A: INPUT DATA (n8n-style) */}
+              <div className="pt-3 pb-3">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
+                  📥 Input Section (Data Received)
+                </span>
+                <p className="text-[10px] text-zinc-400 mb-2">The runtime execution keys accessible from preceding scope:</p>
+                <pre className="bg-zinc-50 dark:bg-zinc-950 p-2.5 rounded border border-zinc-150 dark:border-zinc-800/80 text-[10px] font-mono text-zinc-600 dark:text-zinc-400 max-h-32 overflow-y-auto leading-tight">
+                  {selectedNode.type === 'enrichment' ? (
+                    JSON.stringify({
+                      contact_name: "Jane Smith",
+                      contact_email: "janesmith@acme.com",
+                      company_name: "Acme Inc",
+                      tenant_id: 1
+                    }, null, 2)
+                  ) : selectedNode.type === 'send_email' ? (
+                    JSON.stringify({
+                      contact_name: "Jane Smith",
+                      company_name: "Acme Inc",
+                      company_size: "500",
+                      industry: "software",
+                      enriched_by: "AI Enrichment",
+                      tenant_id: 1
+                    }, null, 2)
+                  ) : selectedNode.type === 'intent' ? (
+                    JSON.stringify({
+                      contact_name: "Jane Smith",
+                      company_name: "Acme Inc",
+                      company_size: "500",
+                      industry: "software",
+                      sent: true,
+                      recipient: "janesmith@acme.com",
+                      subject: "Quick question for Jane Smith",
+                      message_id: "workflow-msg-1234",
+                      email_body: "Yes, we schedule a call next Tuesday!"
+                    }, null, 2)
+                  ) : selectedNode.type === 'sales_action' ? (
+                    JSON.stringify({
+                      contact_name: "Jane Smith",
+                      company_name: "Acme Inc",
+                      intent: "book_call",
+                      confidence_score: 0.95,
+                      tenant_id: 1
+                    }, null, 2)
                   ) : (
+                    JSON.stringify({
+                      contact_name: "Jane Smith",
+                      company_name: "Acme Inc",
+                      tenant_id: 1
+                    }, null, 2)
+                  )}
+                </pre>
+              </div>
+
+              {/* SECTION B: ACTION / BUSINESS LOGIC (n8n-style) */}
+              <div className="pt-3 pb-3 space-y-3">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                  ⚙️ Processing & Business Logic
+                </span>
+
+                {selectedNode.type === 'condition' && (
+                  <div className="space-y-3">
                     <div>
-                      <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Target Status</label>
+                      <label className="block text-[11px] font-semibold text-zinc-500">Condition Field</label>
+                      <input
+                        type="text"
+                        value={selectedNode.data?.properties?.condition_field || 'company_size'}
+                        onChange={e => updateNodeProperty(selectedNode.id, 'condition_field', e.target.value)}
+                        className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-zinc-500">Operator</label>
                       <select
-                        value={selectedNode.data?.properties?.status || 'active'}
-                        onChange={e => updateNodeProperty(selectedNode.id, 'status', e.target.value)}
-                        className="mt-1 block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                        value={selectedNode.data?.properties?.condition_operator || '>'}
+                        onChange={e => updateNodeProperty(selectedNode.id, 'condition_operator', e.target.value)}
+                        className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
                       >
-                        <option value="new">new</option>
-                        <option value="active">active</option>
-                        <option value="qualified">qualified</option>
-                        <option value="junk">junk</option>
-                        <option value="paused">paused</option>
+                        <option value=">">&gt; Greater Than</option>
+                        <option value="<">&lt; Less Than</option>
+                        <option value="==">== Equal To</option>
+                        <option value="!=">!= Not Equal</option>
+                        <option value="contains">Contains Substring</option>
                       </select>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {selectedNode.type === 'intent' && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1">AI Prompt Extra Context</label>
-                    <p className="text-[10px] text-zinc-400 mb-1.5">Add background instructions, custom rules, or past logs for the AI agent.</p>
-                    <textarea
-                      rows={4}
-                      value={selectedNode.data?.properties?.extra_context || ''}
-                      placeholder="e.g. Prioritize scheduling calls. Ignore signature footers."
-                      onChange={e => updateNodeProperty(selectedNode.id, 'extra_context', e.target.value)}
-                      className="block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono"
-                    />
+                    <div>
+                      <label className="block text-[11px] font-semibold text-zinc-500">Condition Value</label>
+                      <input
+                        type="text"
+                        value={selectedNode.data?.properties?.condition_value || '100'}
+                        onChange={e => updateNodeProperty(selectedNode.id, 'condition_value', e.target.value)}
+                        className="mt-1 block w-full rounded border-zinc-355 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                      />
+                    </div>
                   </div>
+                )}
 
-                  <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Stages & Descriptions</label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const currentStages = selectedNode.data?.properties?.stages || [
-                            { name: 'positive', description: 'Prospect shows positive interest or wants to connect.' },
-                            { name: 'negative', description: 'Prospect declined, said stop, or unsubscribe.' },
-                            { name: 'neutral', description: 'Automated, out of office, or indifferent replies.' }
-                          ];
-                          const name = prompt('Enter custom stage name (e.g. book_call):') || '';
-                          if (name) {
-                            const description = prompt('Enter stage matching description for AI agent:') || '';
-                            updateNodeProperty(selectedNode.id, 'stages', [...currentStages, { name, description }]);
-                          }
-                        }}
-                        className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800"
+                {selectedNode.type === 'send_email' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-zinc-500">Email Subject</label>
+                      <input
+                        type="text"
+                        value={selectedNode.data?.properties?.subject || ''}
+                        placeholder="e.g. Quick question for {{contact_name}}"
+                        onChange={e => updateNodeProperty(selectedNode.id, 'subject', e.target.value)}
+                        className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-zinc-500">Email Body Reference</label>
+                      <textarea
+                        rows={6}
+                        value={selectedNode.data?.properties?.body || ''}
+                        placeholder="Is {{company_name}} looking for a solution?"
+                        onChange={e => updateNodeProperty(selectedNode.id, 'body', e.target.value)}
+                        className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono leading-relaxed resize-none"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {selectedNode.type === 'sales_action' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-zinc-500">Action Type</label>
+                      <select
+                        value={selectedNode.data?.properties?.action_type || 'update_stage'}
+                        onChange={e => updateNodeProperty(selectedNode.id, 'action_type', e.target.value)}
+                        className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
                       >
-                        + Add Stage
-                      </button>
+                        <option value="update_stage">Update Prospect Stage</option>
+                        <option value="update_status">Update Prospect Status</option>
+                      </select>
                     </div>
-                    <p className="text-[10px] text-zinc-400 mb-2">Define custom intents and descriptions for AI matching.</p>
+                    {selectedNode.data?.properties?.action_type !== 'update_status' ? (
+                      <div>
+                        <label className="block text-[11px] font-semibold text-zinc-500">Target Stage</label>
+                        <select
+                          value={selectedNode.data?.properties?.stage || 'Engaged'}
+                          onChange={e => updateNodeProperty(selectedNode.id, 'stage', e.target.value)}
+                          className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                        >
+                          <option value="New">New</option>
+                          <option value="Researching">Researching</option>
+                          <option value="Ready to Contact">Ready to Contact</option>
+                          <option value="Contacted">Contacted</option>
+                          <option value="Engaged">Engaged</option>
+                          <option value="Connected">Connected</option>
+                          <option value="Converted">Converted</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-[11px] font-semibold text-zinc-500">Target Status</label>
+                        <select
+                          value={selectedNode.data?.properties?.status || 'active'}
+                          onChange={e => updateNodeProperty(selectedNode.id, 'status', e.target.value)}
+                          className="mt-1 block w-full rounded border-zinc-350 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2"
+                        >
+                          <option value="new">new</option>
+                          <option value="active">active</option>
+                          <option value="qualified">qualified</option>
+                          <option value="junk">junk</option>
+                          <option value="paused">paused</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                      {(selectedNode.data?.properties?.stages || [
-                        { name: 'positive', description: 'Prospect shows positive interest or wants to connect.' },
-                        { name: 'negative', description: 'Prospect declined, said stop, or unsubscribe.' },
-                        { name: 'neutral', description: 'Automated, out of office, or indifferent replies.' }
-                      ]).map((stage: any, sIdx: number) => (
-                        <div key={sIdx} className="bg-zinc-50 dark:bg-zinc-950 p-2.5 rounded border border-zinc-200 dark:border-zinc-800 space-y-1 relative group">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const currentStages = selectedNode.data?.properties?.stages || [
-                                { name: 'positive', description: 'Prospect shows positive interest or wants to connect.' },
-                                { name: 'negative', description: 'Prospect declined, said stop, or unsubscribe.' },
-                                { name: 'neutral', description: 'Automated, out of office, or indifferent replies.' }
-                              ];
-                              updateNodeProperty(selectedNode.id, 'stages', currentStages.filter((_: any, i: number) => i !== sIdx));
-                            }}
-                            className="absolute right-2 top-2 text-red-500 hover:text-red-700 font-bold text-xs"
-                          >
-                            ×
-                          </button>
-                          <div className="font-semibold text-[10px] text-zinc-700 dark:text-zinc-300">Stage: {stage.name}</div>
-                          <div className="text-[10px] text-zinc-500 line-clamp-2" title={stage.description}>{stage.description}</div>
-                        </div>
-                      ))}
+                {selectedNode.type === 'intent' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-1">AI Prompt Extra Context</label>
+                      <textarea
+                        rows={3}
+                        value={selectedNode.data?.properties?.extra_context || ''}
+                        placeholder="e.g. Prioritize scheduling calls. Ignore signature footers."
+                        onChange={e => updateNodeProperty(selectedNode.id, 'extra_context', e.target.value)}
+                        className="block w-full rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs py-1.5 px-2 font-mono"
+                      />
+                    </div>
+
+                    <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-[11px] font-bold text-zinc-500">Stages & Descriptions</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentStages = selectedNode.data?.properties?.stages || [
+                              { name: 'positive', description: 'Prospect shows positive interest or wants to connect.' },
+                              { name: 'negative', description: 'Prospect declined, said stop, or unsubscribe.' },
+                              { name: 'neutral', description: 'Automated, out of office, or indifferent replies.' }
+                            ];
+                            const name = prompt('Enter custom stage name (e.g. book_call):') || '';
+                            if (name) {
+                              const description = prompt('Enter stage matching description for AI agent:') || '';
+                              updateNodeProperty(selectedNode.id, 'stages', [...currentStages, { name, description }]);
+                            }
+                          }}
+                          className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800"
+                        >
+                          + Add Stage
+                        </button>
+                      </div>
+
+                      <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                        {(selectedNode.data?.properties?.stages || [
+                          { name: 'positive', description: 'Prospect shows positive interest or wants to connect.' },
+                          { name: 'negative', description: 'Prospect declined, said stop, or unsubscribe.' },
+                          { name: 'neutral', description: 'Automated, out of office, or indifferent replies.' }
+                        ]).map((stage: any, sIdx: number) => (
+                          <div key={sIdx} className="bg-zinc-50 dark:bg-zinc-950 p-2 rounded border border-zinc-200 dark:border-zinc-850 space-y-1 relative group">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentStages = selectedNode.data?.properties?.stages || [
+                                  { name: 'positive', description: 'Prospect shows positive interest or wants to connect.' },
+                                  { name: 'negative', description: 'Prospect declined, said stop, or unsubscribe.' },
+                                  { name: 'neutral', description: 'Automated, out of office, or indifferent replies.' }
+                                ];
+                                updateNodeProperty(selectedNode.id, 'stages', currentStages.filter((_: any, i: number) => i !== sIdx));
+                              }}
+                              className="absolute right-2 top-1 text-red-500 hover:text-red-700 font-bold text-xs"
+                            >
+                              ×
+                            </button>
+                            <div className="font-semibold text-[10px] text-zinc-700 dark:text-zinc-300">Stage: {stage.name}</div>
+                            <div className="text-[10px] text-zinc-500 truncate" title={stage.description}>{stage.description}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {selectedNode.type === 'enrichment' && (
-                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-500">
-                  This enrichment node leverages AI to automatically query sales intelligence APIs and lookup company domain information (such as company size, country, industry).
-                </div>
-              )}
+                {selectedNode.type === 'enrichment' && (
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-500">
+                    This enrichment node leverages AI to automatically query sales intelligence APIs and lookup company domain information (such as company size, country, industry).
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION C: OUTPUT DATA (n8n-style) */}
+              <div className="pt-3">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
+                  📤 Output Section (Data Produced)
+                </span>
+                <p className="text-[10px] text-zinc-400 mb-2">The key-values produced by this node upon successful execution:</p>
+                <pre className="bg-zinc-50 dark:bg-zinc-950 p-2.5 rounded border border-zinc-150 dark:border-zinc-800/80 text-[10px] font-mono text-zinc-600 dark:text-zinc-400 max-h-32 overflow-y-auto leading-tight">
+                  {selectedNode.type === 'enrichment' ? (
+                    JSON.stringify({
+                      company_size: "500",
+                      industry: "software",
+                      enriched_by: "AI Enrichment",
+                      enriched: true
+                    }, null, 2)
+                  ) : selectedNode.type === 'send_email' ? (
+                    JSON.stringify({
+                      sent: true,
+                      recipient: "janesmith@acme.com",
+                      subject: "Quick question for Jane Smith",
+                      message_id: "workflow-msg-1234"
+                    }, null, 2)
+                  ) : selectedNode.type === 'intent' ? (
+                    JSON.stringify({
+                      intent: "book_call",
+                      confidence_score: 0.95,
+                      detected: true
+                    }, null, 2)
+                  ) : selectedNode.type === 'condition' ? (
+                    JSON.stringify({
+                      result: true,
+                      checked_field: "company_size",
+                      actual_value: "500"
+                    }, null, 2)
+                  ) : selectedNode.type === 'sales_action' ? (
+                    JSON.stringify({
+                      action_taken: "update_stage",
+                      applied: true,
+                      stage_applied: "Converted"
+                    }, null, 2)
+                  ) : (
+                    JSON.stringify({
+                      status: "success"
+                    }, null, 2)
+                  )}
+                </pre>
+              </div>
 
             </div>
           ) : (
             <div className="text-center text-zinc-400 text-xs py-12">
-              Click on any node in the React Flow canvas to configure its settings.
+              Click on any node in the React Flow canvas to inspect or configure its input, processing, and output sections.
             </div>
           )}
         </div>
