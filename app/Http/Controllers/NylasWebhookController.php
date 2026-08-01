@@ -122,7 +122,7 @@ class NylasWebhookController extends Controller
     {
         $eventType = $event['type'] ?? 'unknown';
         $data = $event['data'] ?? [];
-        $grantId = $data['grant_id'] ?? null;
+        $grantId = $data['grant_id'] ?? $data['object']['grant_id'] ?? null;
         $objectId = $data['object']['id'] ?? null;
 
         Log::info('[NYLAS WEBHOOK LOG] Logging event to DB.', [

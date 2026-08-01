@@ -48,3 +48,4 @@ public/build/*
 public/js/filament/*
 public/vendor/*
 public/build/assets/*
+public/build/manifest.json
