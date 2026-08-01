@@ -291,6 +291,64 @@ new class extends Component
                 ->send();
         }
     }
+
+    public function syncEmails(NylasService $nylasService)
+    {
+        $accounts = auth()->user()->nylasAccounts;
+
+        if ($accounts->isEmpty()) {
+            Notification::make()
+                ->title('No accounts connected')
+                ->body('Please connect a Nylas account first.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $syncedCount = 0;
+
+        foreach ($accounts as $account) {
+            $account->update(['is_syncing' => true]);
+
+            try {
+                $response = $nylasService->getMessages($account->grant_id, [
+                    'limit' => 20,
+                ]);
+
+                if ($response && isset($response['data']) && is_array($response['data'])) {
+                    foreach ($response['data'] as $msg) {
+                        $msgId = $msg['id'] ?? null;
+                        if ($msgId) {
+                            if (!EmailMessage::where('nylas_message_id', $msgId)->exists()) {
+                                \App\Jobs\SyncNewEmailJob::dispatchSync($account->grant_id, $msgId);
+                                $syncedCount++;
+                            }
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to sync emails on demand: " . $e->getMessage());
+            } finally {
+                $account->update(['is_syncing' => false]);
+            }
+        }
+
+        if ($syncedCount > 0) {
+            Notification::make()
+                ->title('Sync complete')
+                ->body("Successfully synced {$syncedCount} new message(s).")
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Sync complete')
+                ->body('All emails are up-to-date.')
+                ->info()
+                ->send();
+        }
+
+        $this->loadDefaultThread();
+    }
 };
 
 ?>
@@ -364,12 +422,15 @@ new class extends Component
 
                 <!-- 2. CONVERSATION LIST (Middle Pane) -->
                 <div class="w-full md:w-80 border-r border-zinc-200 dark:border-zinc-800 flex flex-col bg-white dark:bg-zinc-950" @if(auth()->user()->nylasAccounts()->where('is_syncing', true)->exists()) wire:poll.5s @endif>
-                    <!-- Search Input -->
-                    <div class="p-4 border-b border-zinc-200 dark:border-zinc-800">
-                        <div class="relative">
+                    <!-- Search Input & Sync Button -->
+                    <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
+                        <div class="relative flex-1">
                             <x-phosphor-magnifying-glass class="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
                             <input wire:model.live.debounce.300ms="searchQuery" type="text" placeholder="Search mail..." class="w-full pl-9 pr-4 py-1.5 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" />
                         </div>
+                        <button wire:click="syncEmails" wire:loading.attr="disabled" class="p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors flex-shrink-0" title="Sync / Reload Emails">
+                            <x-phosphor-arrows-clockwise-bold wire:loading.class="animate-spin" class="w-4 h-4" />
+                        </button>
                     </div>
 
                     @if(auth()->user()->nylasAccounts()->where('is_syncing', true)->exists())

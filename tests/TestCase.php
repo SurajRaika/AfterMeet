@@ -21,6 +21,14 @@ abstract class TestCase extends BaseTestCase
             ! \App\Models\User::where('email', 'admin@admin.com')->exists()) {
             Artisan::call('db:seed', ['--class' => 'UsersTableSeeder']);
         }
+        if (\Illuminate\Support\Facades\Schema::hasTable('plans') &&
+            ! \Wave\Plan::exists()) {
+            Artisan::call('db:seed', ['--class' => 'PlansTableSeeder']);
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('settings') &&
+            ! \Wave\Setting::exists()) {
+            Artisan::call('db:seed', ['--class' => 'SettingsTableSeeder']);
+        }
 
         // Manually register Folio path for anchor theme so all settings/folio routes are defined in tests
         if (class_exists(\Laravel\Folio\Folio::class) && file_exists(resource_path('themes/anchor/pages'))) {
