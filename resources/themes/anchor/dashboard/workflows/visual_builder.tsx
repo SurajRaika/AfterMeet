@@ -79,17 +79,21 @@ export default function VisualWorkflowBuilder() {
           setEdges(rfEdges);
         }
       } else {
-        // Default nodes
+        // Default nodes representing an intelligent multi-branching sales intent agent
         const defaultNodes: RfNode[] = [
-          { id: '1', type: 'enrichment', data: { label: 'AI Enrichment', properties: {} }, position: { x: 100, y: 100 } },
-          { id: '2', type: 'condition', data: { label: 'Branch Check', properties: { condition_field: 'company_size', condition_operator: '>', condition_value: '100' } }, position: { x: 300, y: 100 } },
-          { id: '3', type: 'send_email', data: { label: 'Email Outreach', properties: { subject: 'Hi {{contact_name}}', body: 'We saw you are from {{company_name}}!' } }, position: { x: 550, y: 50 } },
-          { id: '4', type: 'sales_action', data: { label: 'Update CRM Stage', properties: { action_type: 'update_stage', stage: 'Engaged' } }, position: { x: 550, y: 250 } },
+          { id: '1', type: 'enrichment', data: { label: 'AI Enrichment', properties: {} }, position: { x: 50, y: 150 } },
+          { id: '2', type: 'send_email', data: { label: 'First Outreach Email', properties: { subject: 'Quick question for {{contact_name}}', body: 'Hi {{contact_name}}, is {{company_name}} looking for a solution?' } }, position: { x: 250, y: 150 } },
+          { id: '3', type: 'intent', data: { label: 'Reply Intent Analysis', properties: { stages: [ { name: 'book_call', description: 'Prospect is interested and wants to schedule a call or meet.' }, { name: 'not_now', description: 'Prospect is busy, out of office, or wants to connect later.' }, { name: 'unsubscribed', description: 'Prospect declined, said stop, or unsubscribe.' } ], extra_context: 'Identify direct action requests like schedule/meeting as book_call' } }, position: { x: 450, y: 150 } },
+          { id: '4', type: 'sales_action', data: { label: 'Mark as Converted', properties: { action_type: 'update_stage', stage: 'Converted' } }, position: { x: 700, y: 50 } },
+          { id: '5', type: 'send_email', data: { label: 'Send Follow-up Email', properties: { subject: 'Follow up with {{contact_name}}', body: 'Hi {{contact_name}}, following up on our last message!' } }, position: { x: 700, y: 180 } },
+          { id: '6', type: 'sales_action', data: { label: 'Mark as Junk/Paused', properties: { action_type: 'update_status', status: 'paused' } }, position: { x: 700, y: 310 } },
         ];
         const defaultEdges: RfEdge[] = [
           { id: 'e1-2', source: '1', target: '2', animated: true },
-          { id: 'e2-3', source: '2', target: '3', label: 'true', animated: true },
-          { id: 'e2-4', source: '2', target: '4', label: 'false', animated: true },
+          { id: 'e2-3', source: '2', target: '3', animated: true },
+          { id: 'e3-4', source: '3', target: '4', label: 'book_call', animated: true },
+          { id: 'e3-5', source: '3', target: '5', label: 'not_now', animated: true },
+          { id: 'e3-6', source: '3', target: '6', label: 'unsubscribed', animated: true },
         ];
         setNodes(defaultNodes);
         setEdges(defaultEdges);

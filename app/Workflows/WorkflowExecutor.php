@@ -183,24 +183,34 @@ class WorkflowExecutor
             return null;
         }
 
-        // If it is a condition node, branch based on result
-        if (($currentNode['type'] ?? '') === 'condition' && isset($nodeOutput['result'])) {
-            $conditionResult = (bool)$nodeOutput['result'];
-            $resultStr = $conditionResult ? 'true' : 'false';
+        // Check if there are edges with matching condition/label against any output values
+        // This supports multi-branching for intent detection stages, custom condition results, etc.
+        foreach ($outgoingEdges as $edge) {
+            $condVal = $edge['condition'] ?? $edge['condition_value'] ?? $edge['label'] ?? null;
+            if ($condVal !== null) {
+                $condValStr = strtolower((string)$condVal);
 
-            foreach ($outgoingEdges as $edge) {
-                $condVal = $edge['condition'] ?? $edge['condition_value'] ?? $edge['label'] ?? null;
-                if ($condVal !== null) {
-                    // Normalize condition value comparison
-                    $condValStr = strtolower((string)$condVal);
-                    if ($condValStr === $resultStr || ($conditionResult && $condValStr === '1') || (!$conditionResult && $condValStr === '0')) {
-                        return $this->findNodeById($edge['to'] ?? $edge['target'] ?? null, $nodes);
+                // Check matches in any output key (e.g. 'intent' => 'book_call' matches edge 'book_call')
+                foreach ($nodeOutput as $outKey => $outVal) {
+                    if (is_scalar($outVal)) {
+                        $outValStr = strtolower((string)$outVal);
+                        if ($outValStr === $condValStr || ($outVal === true && $condValStr === 'true') || ($outVal === false && $condValStr === 'false')) {
+                            return $this->findNodeById($edge['to'] ?? $edge['target'] ?? null, $nodes);
+                        }
                     }
                 }
             }
         }
 
-        // Default: return the first outgoing edge target
+        // Fallback: if no conditional match but there's a default/unconditional edge, follow it
+        foreach ($outgoingEdges as $edge) {
+            $condVal = $edge['condition'] ?? $edge['condition_value'] ?? $edge['label'] ?? null;
+            if ($condVal === null) {
+                return $this->findNodeById($edge['to'] ?? $edge['target'] ?? null, $nodes);
+            }
+        }
+
+        // Ultimate fallback: return the first outgoing edge target
         $firstEdge = $outgoingEdges[0];
         return $this->findNodeById($firstEdge['to'] ?? $firstEdge['target'] ?? null, $nodes);
     }

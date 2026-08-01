@@ -29,15 +29,67 @@ class WorkflowController extends Controller
         // Provide a beautiful default graph JSON
         $defaultGraph = json_encode([
             'nodes' => [
-                ['id' => '1', 'type' => 'enrichment'],
-                ['id' => '2', 'type' => 'condition'],
-                ['id' => '3', 'type' => 'send_email'],
-                ['id' => '4', 'type' => 'sales_action'],
+                [
+                    'id' => '1',
+                    'type' => 'enrichment',
+                    'label' => 'AI Enrichment',
+                ],
+                [
+                    'id' => '2',
+                    'type' => 'send_email',
+                    'label' => 'First Outreach Email',
+                    'properties' => [
+                        'subject' => 'Quick question for {{contact_name}}',
+                        'body' => 'Hi {{contact_name}}, is {{company_name}} looking for a solution?'
+                    ]
+                ],
+                [
+                    'id' => '3',
+                    'type' => 'intent',
+                    'label' => 'Reply Intent Analysis',
+                    'properties' => [
+                        'stages' => [
+                            ['name' => 'book_call', 'description' => 'Prospect is interested and wants to schedule a call or meet.'],
+                            ['name' => 'not_now', 'description' => 'Prospect is busy, out of office, or wants to connect later.'],
+                            ['name' => 'unsubscribed', 'description' => 'Prospect declined, said stop, or unsubscribe.']
+                        ],
+                        'extra_context' => 'Identify direct action requests like schedule/meeting as book_call'
+                    ]
+                ],
+                [
+                    'id' => '4',
+                    'type' => 'sales_action',
+                    'label' => 'Mark as Converted',
+                    'properties' => [
+                        'action_type' => 'update_stage',
+                        'stage' => 'Converted'
+                    ]
+                ],
+                [
+                    'id' => '5',
+                    'type' => 'send_email',
+                    'label' => 'Send Follow-up Email',
+                    'properties' => [
+                        'subject' => 'Follow up with {{contact_name}}',
+                        'body' => 'Hi {{contact_name}}, following up on our last message!'
+                    ]
+                ],
+                [
+                    'id' => '6',
+                    'type' => 'sales_action',
+                    'label' => 'Mark as Junk/Paused',
+                    'properties' => [
+                        'action_type' => 'update_status',
+                        'status' => 'paused'
+                    ]
+                ]
             ],
             'edges' => [
                 ['from' => '1', 'to' => '2'],
-                ['from' => '2', 'to' => '3', 'condition' => 'true'],
-                ['from' => '2', 'to' => '4', 'condition' => 'false'],
+                ['from' => '2', 'to' => '3'],
+                ['from' => '3', 'to' => '4', 'condition' => 'book_call'],
+                ['from' => '3', 'to' => '5', 'condition' => 'not_now'],
+                ['from' => '3', 'to' => '6', 'condition' => 'unsubscribed']
             ]
         ], JSON_PRETTY_PRINT);
 
