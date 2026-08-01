@@ -56,6 +56,14 @@ class Prospect extends Model
     }
 
     /**
+     * Get the automation instances for the prospect.
+     */
+    public function automationInstances(): HasMany
+    {
+        return $this->hasMany(AutomationInstance::class, 'prospect_id');
+    }
+
+    /**
      * Get the current step for the prospect.
      * Returns the blueprint step where step_order matches the prospect's current_step_order.
      */
