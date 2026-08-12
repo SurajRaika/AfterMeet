@@ -3,13 +3,8 @@
 use Livewire\Volt\Component;
 use Livewire\Attributes\Url;
 use Filament\Notifications\Notification;
-use App\Models\Blueprint;
-use App\Models\BlueprintStep;
 use App\Models\Prospect;
-use App\Models\ProspectStepLog;
 use App\Models\ProspectView;
-use App\Models\Template;
-use App\Services\NylasService;
 use Illuminate\Support\Str;
 
 new class extends Component {
@@ -23,10 +18,6 @@ new class extends Component {
     public string $statusFilter = '';
 
     public bool $isCreateViewOpen = false;
-
-    // New backend properties
-    public ?int $selectedProspectId = null;
-    public bool $isBlueprintModalOpen = false;
 
     public function mount()
     {
@@ -126,11 +117,6 @@ new class extends Component {
         return ProspectView::where('tenant_id', $this->getTenantId())->get();
     }
 
-    public function getBlueprintsProperty()
-    {
-        return Blueprint::where('tenant_id', $this->getTenantId())->get();
-    }
-
     public function getSelectedViewProperty()
     {
         if ($this->selectedViewId === 'all') {
@@ -142,7 +128,7 @@ new class extends Component {
     public function getProspectsProperty()
     {
         $this->ensureDefaultsExist();
-        $query = Prospect::where('tenant_id', $this->getTenantId())->with('blueprint');
+        $query = Prospect::where('tenant_id', $this->getTenantId());
 
         $selectedView = $this->getSelectedViewProperty();
         if ($selectedView) {
@@ -221,162 +207,6 @@ new class extends Component {
             ->send();
     }
 
-    // NEW BACKEND ACTIONS
-    public function openStartContacting($id)
-    {
-        $this->selectedProspectId = $id;
-        $this->isBlueprintModalOpen = true;
-    }
-
-    public function closeBlueprintModal()
-    {
-        $this->selectedProspectId = null;
-        $this->isBlueprintModalOpen = false;
-    }
-
-    public function startContacting($blueprintId)
-    {
-        if (!$this->selectedProspectId) {
-            Notification::make()
-                ->title('Error')
-                ->body('No prospect selected.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $prospect = Prospect::where('tenant_id', $this->getTenantId())->findOrFail($this->selectedProspectId);
-        $blueprint = Blueprint::where('tenant_id', $this->getTenantId())->findOrFail($blueprintId);
-
-        $prospect->update([
-            'blueprint_id' => $blueprint->id,
-            'current_step_order' => 0,
-            'status' => 'active',
-        ]);
-
-        Notification::make()
-            ->title('Contacting Started')
-            ->body("Blueprint {$blueprint->name} assigned to {$prospect->contact_name}.")
-            ->success()
-            ->send();
-
-        // Dynamically send the first step immediately
-        $this->sendNextStep($prospect->id);
-
-        $this->closeBlueprintModal();
-    }
-
-    public function pauseContacting($id)
-    {
-        $prospect = Prospect::where('tenant_id', $this->getTenantId())->findOrFail($id);
-        $prospect->update(['status' => 'paused']);
-
-        Notification::make()
-            ->title('Sequence Paused')
-            ->body("Contacting sequence paused for {$prospect->contact_name}.")
-            ->success()
-            ->send();
-    }
-
-    public function resumeContacting($id)
-    {
-        $prospect = Prospect::where('tenant_id', $this->getTenantId())->findOrFail($id);
-        $prospect->update(['status' => 'active']);
-
-        Notification::make()
-            ->title('Sequence Resumed')
-            ->body("Contacting sequence resumed for {$prospect->contact_name}.")
-            ->success()
-            ->send();
-    }
-
-    public function sendNextStep($id)
-    {
-        $prospect = Prospect::where('tenant_id', $this->getTenantId())->findOrFail($id);
-
-        $step = $prospect->currentStep();
-        if (!$step) {
-            Notification::make()
-                ->title('Error')
-                ->body('No pending step found for this prospect.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $nylasAccount = auth()->user()->nylasAccounts()->first();
-        if (!$nylasAccount) {
-            Notification::make()
-                ->title('Error')
-                ->body('Please connect a Nylas account first.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $template = $step->template;
-        if (!$template) {
-            Notification::make()
-                ->title('Error')
-                ->body('The template for this step is missing.')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $subject = Template::renderString($template->subject, $prospect);
-        $body = Template::renderString($template->body, $prospect);
-
-        $nylasService = new NylasService();
-        $payload = [
-            'to' => [
-                ['email' => $prospect->contact_email, 'name' => $prospect->contact_name]
-            ],
-            'subject' => $subject,
-            'body' => $body,
-        ];
-
-        try {
-            $response = $nylasService->sendMessage($nylasAccount->grant_id, $payload);
-
-            if ($response && isset($response['data']['id'])) {
-                $messageId = $response['data']['id'];
-
-                ProspectStepLog::create([
-                    'prospect_id' => $prospect->id,
-                    'blueprint_step_id' => $step->id,
-                    'sent_at' => now(),
-                    'message_id' => $messageId,
-                ]);
-
-                $prospect->current_step_order += 1;
-                $prospect->last_sent_at = now();
-                if ($prospect->status === 'new') {
-                    $prospect->status = 'active';
-                }
-                $prospect->save();
-
-                Notification::make()
-                    ->title('Outreach Dispatched')
-                    ->body("Email dispatched successfully to {$prospect->contact_name} and sequence advanced.")
-                    ->success()
-                    ->send();
-            } else {
-                Notification::make()
-                    ->title('Sending Failed')
-                    ->body('Failed to send email. Nylas API rejected the payload.')
-                    ->danger()
-                    ->send();
-            }
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('Exception occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        }
-    }
-
     public function deleteProspect($id)
     {
         $prospect = Prospect::where('tenant_id', $this->getTenantId())->findOrFail($id);
@@ -413,7 +243,7 @@ new class extends Component {
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800 gap-4">
         <x-app.heading
             title="Prospects"
-            description="Manage pipelines, assign blueprints, or trigger outreach manually."
+            description="Manage pipelines or review timeline."
             :border="false"
         />
         <div class="flex items-center gap-1.5">
@@ -427,12 +257,12 @@ new class extends Component {
                 </button>
             </div>
 
-            <a href="{{ route('prospects.import.show') }}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded transition-colors shadow-sm">
+            <a href="{{ route('prospects.import.show') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded transition-colors shadow-sm">
                 <x-phosphor-upload-simple-bold class="w-3.5 h-3.5" />
                 Import
             </a>
 
-            <a href="{{ route('prospects.create') }}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded transition-colors shadow-sm">
+            <a href="{{ route('prospects.create') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded transition-colors shadow-sm">
                 <x-phosphor-plus-bold class="w-3.5 h-3.5" />
                 Create
             </a>
@@ -450,9 +280,6 @@ new class extends Component {
             @include('livewire.prospects.table-view')
         @endif
     </div>
-
-    <!-- Modals -->
-    @include('livewire.prospects.blueprint-modal')
 
     <!-- Create Custom View Modal (Alpine.js) -->
     <div

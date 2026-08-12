@@ -2,12 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Blueprint;
 use App\Models\Prospect;
-use App\Models\ProspectStepLog;
 use App\Models\ProspectView;
-use App\Models\Template;
-use App\Services\NylasService;
 use Illuminate\Http\Request;
 
 class ProspectController extends Controller
@@ -19,22 +15,6 @@ class ProspectController extends Controller
     {
         $tenantId = auth()->user()->organization_id ?? auth()->id();
         $prospect = Prospect::where('tenant_id', $tenantId)->findOrFail($id);
-
-        // 1. Get automated step logs
-        $stepLogs = ProspectStepLog::where('prospect_id', $prospect->id)
-            ->with(['blueprintStep.template'])
-            ->get()
-            ->map(function ($log) {
-                return [
-                    'type' => 'ai_automated',
-                    'timestamp' => $log->sent_at,
-                    'subject' => $log->blueprintStep->template->subject ?? 'Automated Outreach',
-                    'body' => $log->blueprintStep->template->body ?? '',
-                    'message_id' => $log->message_id,
-                    'step_order' => $log->blueprintStep->step_order ?? 0,
-                    'template_name' => $log->blueprintStep->template->name ?? 'Unknown Template',
-                ];
-            });
 
         // Get user IDs belonging to this tenant/organization to restrict email access
         if (auth()->user()->organization_id) {
@@ -50,23 +30,14 @@ class ProspectController extends Controller
             ->pluck('id')
             ->toArray();
 
-        // 2. Get local email messages synced from Nylas matching prospect's contact email and owned by this tenant's users
-        $emails = \App\Models\EmailMessage::whereIn('nylas_account_id', $nylasAccountIds)
+        // Get local email messages synced from Nylas matching prospect's contact email and owned by this tenant's users
+        $events = \App\Models\EmailMessage::whereIn('nylas_account_id', $nylasAccountIds)
             ->where(function ($query) use ($prospect) {
                 $query->where('from_email', $prospect->contact_email)
                       ->orWhere('to', 'like', '%' . $prospect->contact_email . '%');
             })
             ->get()
-            ->map(function ($email) use ($stepLogs, $prospect) {
-                // Determine if this email matches one of our automated sends
-                $isAutomated = $stepLogs->contains(function ($log) use ($email) {
-                    return $log['message_id'] === $email->nylas_message_id;
-                });
-
-                if ($isAutomated) {
-                    return null; // Skip duplicate mapping of automated logs
-                }
-
+            ->map(function ($email) use ($prospect) {
                 $isIncoming = strtolower($email->from_email) === strtolower($prospect->contact_email);
 
                 return [
@@ -79,10 +50,8 @@ class ProspectController extends Controller
                     'from_name' => $email->from_name,
                 ];
             })
-            ->filter();
-
-        // 3. Merge and sort chronologically
-        $events = $stepLogs->concat($emails)->sortBy('timestamp')->values();
+            ->sortBy('timestamp')
+            ->values();
 
         return view('theme::dashboard.prospects.timeline', compact('prospect', 'events'));
     }
@@ -169,7 +138,7 @@ class ProspectController extends Controller
             ]);
         }
 
-        $query = Prospect::where('tenant_id', $tenantId)->with('blueprint');
+        $query = Prospect::where('tenant_id', $tenantId);
 
         // 2. Filter by View if set
         $selectedViewId = $request->get('view');
@@ -214,9 +183,8 @@ class ProspectController extends Controller
         }
 
         $prospects = $query->get();
-        $blueprints = Blueprint::where('tenant_id', $tenantId)->get();
 
-        return view('theme::dashboard.prospects.index', compact('prospects', 'blueprints', 'views', 'selectedViewId', 'selectedView'));
+        return view('theme::dashboard.prospects.index', compact('prospects', 'views', 'selectedViewId', 'selectedView'));
     }
 
     /**
@@ -224,10 +192,7 @@ class ProspectController extends Controller
      */
     public function create()
     {
-        $tenantId = auth()->user()->organization_id ?? auth()->id();
-        $blueprints = Blueprint::where('tenant_id', $tenantId)->get();
-
-        return view('theme::dashboard.prospects.create', compact('blueprints'));
+        return view('theme::dashboard.prospects.create');
     }
 
     /**
@@ -243,12 +208,6 @@ class ProspectController extends Controller
             'contact_email' => 'required|email|max:255',
             'contact_role' => 'nullable|string|max:255',
             'status' => 'required|in:new,active,qualified,junk,paused',
-            'blueprint_id' => [
-                'nullable',
-                \Illuminate\Validation\Rule::exists('blueprints', 'id')->where(function ($query) use ($tenantId) {
-                    $query->where('tenant_id', $tenantId);
-                }),
-            ],
             'notes' => 'nullable|string',
             'stage' => 'nullable|string|max:255',
             'country' => 'nullable|string|max:255',
@@ -264,7 +223,6 @@ class ProspectController extends Controller
             'contact_email' => $request->contact_email,
             'contact_role' => $request->contact_role,
             'status' => $request->status,
-            'blueprint_id' => $request->blueprint_id,
             'current_step_order' => 0,
             'notes' => $request->notes,
             'stage' => $request->stage ?? 'New',
@@ -284,9 +242,8 @@ class ProspectController extends Controller
     {
         $tenantId = auth()->user()->organization_id ?? auth()->id();
         $prospect = Prospect::where('tenant_id', $tenantId)->findOrFail($id);
-        $blueprints = Blueprint::where('tenant_id', $tenantId)->get();
 
-        return view('theme::dashboard.prospects.edit', compact('prospect', 'blueprints'));
+        return view('theme::dashboard.prospects.edit', compact('prospect'));
     }
 
     /**
@@ -303,13 +260,6 @@ class ProspectController extends Controller
             'contact_email' => 'required|email|max:255',
             'contact_role' => 'nullable|string|max:255',
             'status' => 'required|in:new,active,qualified,junk,paused',
-            'blueprint_id' => [
-                'nullable',
-                \Illuminate\Validation\Rule::exists('blueprints', 'id')->where(function ($query) use ($tenantId) {
-                    $query->where('tenant_id', $tenantId);
-                }),
-            ],
-            'current_step_order' => 'required|integer|min:0',
             'notes' => 'nullable|string',
             'stage' => 'nullable|string|max:255',
             'country' => 'nullable|string|max:255',
@@ -324,8 +274,6 @@ class ProspectController extends Controller
             'contact_email' => $request->contact_email,
             'contact_role' => $request->contact_role,
             'status' => $request->status,
-            'blueprint_id' => $request->blueprint_id,
-            'current_step_order' => $request->current_step_order,
             'notes' => $request->notes,
             'stage' => $request->stage ?? 'New',
             'country' => $request->country,
@@ -348,77 +296,6 @@ class ProspectController extends Controller
         $prospect->delete();
 
         return redirect()->route('prospects.index')->with('success', 'Prospect deleted successfully.');
-    }
-
-    /**
-     * Manually trigger the next step for this prospect.
-     */
-    public function sendNextStep($id)
-    {
-        $tenantId = auth()->user()->organization_id ?? auth()->id();
-        $prospect = Prospect::where('tenant_id', $tenantId)->findOrFail($id);
-
-        // 1. Get current step
-        $step = $prospect->currentStep();
-        if (!$step) {
-            return redirect()->back()->with('error', 'No pending step found for this prospect.');
-        }
-
-        // 2. Ensure Nylas account is connected
-        $nylasAccount = auth()->user()->nylasAccounts()->first();
-        if (!$nylasAccount) {
-            return redirect()->back()->with('error', 'Please connect a Nylas account first.');
-        }
-
-        // 3. Ensure template is present
-        $template = $step->template;
-        if (!$template) {
-            return redirect()->back()->with('error', 'The template for this step is missing.');
-        }
-
-        // 4. Render template string
-        $subject = Template::renderString($template->subject, $prospect);
-        $body = Template::renderString($template->body, $prospect);
-
-        // 5. Send via NylasService
-        $nylasService = new NylasService();
-        $payload = [
-            'to' => [
-                ['email' => $prospect->contact_email, 'name' => $prospect->contact_name]
-            ],
-            'subject' => $subject,
-            'body' => $body,
-        ];
-
-        try {
-            $response = $nylasService->sendMessage($nylasAccount->grant_id, $payload);
-
-            if ($response && isset($response['data']['id'])) {
-                $messageId = $response['data']['id'];
-
-                // Log the step send
-                ProspectStepLog::create([
-                    'prospect_id' => $prospect->id,
-                    'blueprint_step_id' => $step->id,
-                    'sent_at' => now(),
-                    'message_id' => $messageId,
-                ]);
-
-                // Increment step order and set timestamps
-                $prospect->current_step_order += 1;
-                $prospect->last_sent_at = now();
-                if ($prospect->status === 'new') {
-                    $prospect->status = 'active';
-                }
-                $prospect->save();
-
-                return redirect()->back()->with('success', 'Email dispatched successfully via Nylas, logged, and step advanced.');
-            } else {
-                return redirect()->back()->with('error', 'Failed to send email. Nylas API rejected the payload.');
-            }
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Exception occurred: ' . $e->getMessage());
-        }
     }
 
     /**

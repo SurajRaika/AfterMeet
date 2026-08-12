@@ -185,33 +185,3 @@ test('responds with 200 for all auth routes', function ($url) {
 
     $response->assertStatus(200);
 })->with('authroutes');
-
-test('templates.create returns 200 for authenticated user', function () {
-    $user = \App\Models\User::find(1);
-    $this->actingAs($user);
-    $response = $this->get(route('templates.create'));
-    $response->assertStatus(200);
-});
-
-test('templates.generate-ai returns 200 for authenticated user', function () {
-    $user = \App\Models\User::find(1);
-    $this->actingAs($user);
-
-    $prospect = \App\Models\Prospect::create([
-        'tenant_id' => 1,
-        'company_name' => 'Acme Inc',
-        'contact_name' => 'John Doe',
-        'contact_email' => 'john@example.com',
-    ]);
-
-    $response = $this->postJson(route('templates.generate-ai'), [
-        'subject' => 'Meeting at {{company_name}}',
-        'body' => 'Hello {{contact_name}}',
-        'prospect_id' => (string) $prospect->id,
-        'creativity' => 'balanced',
-        'active_fields' => ['company_name', 'contact_name'],
-    ]);
-
-    $response->assertStatus(200);
-    $response->assertJsonStructure(['subject', 'message', 'strategyInsight']);
-});

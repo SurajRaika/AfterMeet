@@ -16,8 +16,6 @@ use App\Http\Controllers\NylasController;
 use App\Http\Controllers\NylasWebhookController;
 use App\Http\Controllers\ProspectController;
 use App\Http\Controllers\ProspectImportController;
-use App\Http\Controllers\TemplateController;
-use App\Http\Controllers\BlueprintController;
 
 // Webhook endpoint for Nylas (without CSRF, and open to the internet)
 Route::match(['get', 'post'], 'webhooks/nylas', [NylasWebhookController::class, 'handle'])
@@ -28,7 +26,7 @@ Wave::routes();
 
 Route::get('temp-login', function() {
     auth()->loginUsingId(1);
-    return redirect()->route('templates.create');
+    return redirect()->route('prospects.index');
 });
 
 Route::middleware('auth')->group(function () {
@@ -36,7 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::get('nylas/callback', [NylasController::class, 'callback'])->name('nylas.callback');
     Route::delete('nylas/disconnect/{id}', [NylasController::class, 'disconnect'])->name('nylas.disconnect');
 
-    // Dashboard Prospect and Blueprint Foundation
+    // Dashboard Prospects
     Route::prefix('dashboard')->group(function () {
         Route::get('prospects/{id}/timeline', [ProspectController::class, 'timeline'])->name('prospects.timeline');
 
@@ -54,31 +52,8 @@ Route::middleware('auth')->group(function () {
         Route::post('prospects/import/upload', [ProspectImportController::class, 'upload'])->name('prospects.import.upload');
         Route::post('prospects/import/process', [ProspectImportController::class, 'process'])->name('prospects.import.process');
         Route::get('prospects/import/sample', [ProspectImportController::class, 'downloadSample'])->name('prospects.import.sample');
-        Route::post('prospects/{id}/send-next-step', [ProspectController::class, 'sendNextStep'])->name('prospects.send-next-step');
         Route::post('prospects/views', [ProspectController::class, 'storeView'])->name('prospects.views.store');
         Route::delete('prospects/views/{id}', [ProspectController::class, 'destroyView'])->name('prospects.views.destroy');
         Route::post('prospects/{id}/update-stage', [ProspectController::class, 'updateStage'])->name('prospects.update-stage');
-
-        Route::post('templates/generate-ai', [TemplateController::class, 'generateAi'])->name('templates.generate-ai');
-
-        Route::resource('templates', TemplateController::class)->names([
-            'index' => 'templates.index',
-            'create' => 'templates.create',
-            'store' => 'templates.store',
-            'edit' => 'templates.edit',
-            'update' => 'templates.update',
-            'destroy' => 'templates.destroy',
-        ])->except(['show']);
-
-        Route::get('templates/{id}/preview', [TemplateController::class, 'preview'])->name('templates.preview');
-
-        Route::resource('blueprints', BlueprintController::class)->names([
-            'index' => 'blueprints.index',
-            'create' => 'blueprints.create',
-            'store' => 'blueprints.store',
-            'edit' => 'blueprints.edit',
-            'update' => 'blueprints.update',
-            'destroy' => 'blueprints.destroy',
-        ])->except(['show']);
     });
 });

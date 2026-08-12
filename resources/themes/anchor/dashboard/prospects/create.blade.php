@@ -65,17 +65,6 @@
                     </div>
 
                     <div>
-                        <label for="blueprint_id" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Assigned Blueprint</label>
-                        <select name="blueprint_id" id="blueprint_id" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                            <option value="">No Sequence Blueprint</option>
-                            @foreach($blueprints as $bp)
-                                <option value="{{ $bp->id }}">{{ $bp->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('blueprint_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div>
                         <label for="country" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300">Country</label>
                         <input type="text" name="country" id="country" placeholder="e.g. USA" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                         @error('country') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
