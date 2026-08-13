@@ -30,6 +30,11 @@ abstract class TestCase extends BaseTestCase
             Artisan::call('db:seed', ['--class' => 'SettingsTableSeeder']);
         }
 
+        if (\Illuminate\Support\Facades\Schema::hasTable('themes') &&
+            ! \DevDojo\Themes\Models\Theme::exists()) {
+            Artisan::call('db:seed', ['--class' => 'ThemesTableSeeder']);
+        }
+
         // Manually register Folio path for anchor theme so all settings/folio routes are defined in tests
         if (class_exists(\Laravel\Folio\Folio::class) && file_exists(resource_path('themes/anchor/pages'))) {
             \Laravel\Folio\Folio::path(resource_path('themes/anchor/pages'))->middleware(['*']);
