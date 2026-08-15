@@ -31,6 +31,16 @@ Route::get('temp-login', function() {
     return redirect()->route('templates.create');
 });
 
+Route::get('/app-prototype', function () {
+    return \Inertia\Inertia::render('App', [
+        'user' => auth()->user() ? [
+            'id' => auth()->user()->id,
+            'name' => auth()->user()->name,
+            'email' => auth()->user()->email,
+        ] : null,
+    ]);
+})->name('app-prototype');
+
 Route::middleware('auth')->group(function () {
     Route::get('nylas/connect', [NylasController::class, 'connect'])->name('nylas.connect');
     Route::get('nylas/callback', [NylasController::class, 'callback'])->name('nylas.callback');
