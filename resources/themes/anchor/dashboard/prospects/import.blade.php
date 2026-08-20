@@ -24,17 +24,6 @@
                     @error('file') <span class="text-red-500 text-xs block mt-1">{{ $message }}</span> @enderror
                 </div>
 
-                <div>
-                    <label for="blueprint_id" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Assign Sequence Blueprint (Optional)</label>
-                    <select name="blueprint_id" id="blueprint_id" class="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                        <option value="">Do Not Assign Sequence</option>
-                        @foreach($blueprints as $bp)
-                            <option value="{{ $bp->id }}">{{ $bp->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('blueprint_id') <span class="text-red-500 text-xs block mt-1">{{ $message }}</span> @enderror
-                </div>
-
                 <div class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                     <a href="{{ route('prospects.index') }}" class="px-4 py-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
                         Cancel

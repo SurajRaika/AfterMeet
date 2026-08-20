@@ -42,7 +42,7 @@
                 <div class="flex-1 space-y-2 min-h-[350px] transition-colors duration-150" id="column-{{ Str::slug($stage) }}">
                     @forelse($stageProspects as $prospect)
                         @php
-                            $isNew = $prospect->status === 'new' || !$prospect->blueprint_id;
+                            $isNew = $prospect->status === 'new';
                             $isActive = $prospect->status === 'active';
                             $isPaused = $prospect->status === 'paused';
                         @endphp
@@ -55,14 +55,14 @@
                                 <span>{{ $prospect->contact_name }}</span>
                                 <!-- Status Dot Indicator -->
                                 @if($isActive)
-                                    <span class="relative flex h-1.5 w-1.5" title="Active (Started)">
+                                    <span class="relative flex h-1.5 w-1.5" title="Active">
                                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                         <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                                     </span>
                                 @elseif($isPaused)
                                     <span class="h-1.5 w-1.5 rounded-full bg-amber-500" title="Paused"></span>
                                 @else
-                                    <span class="h-1.5 w-1.5 rounded-full bg-blue-400" title="New / Unstarted"></span>
+                                    <span class="h-1.5 w-1.5 rounded-full bg-blue-400" title="New"></span>
                                 @endif
                             </div>
                             <div class="text-[10px] text-zinc-400 font-mono truncate">
@@ -82,20 +82,6 @@
                                     {{ $prospect->status }}
                                 </span>
                                 <div class="flex gap-1.5 items-center">
-                                    @if($isNew)
-                                        <button type="button" wire:click="openStartContacting({{ $prospect->id }})" class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
-                                            Start
-                                        </button>
-                                    @elseif($isActive)
-                                        <button type="button" wire:click="pauseContacting({{ $prospect->id }})" class="text-[10px] font-bold text-zinc-500 hover:underline">
-                                            Pause
-                                        </button>
-                                    @elseif($isPaused)
-                                        <button type="button" wire:click="resumeContacting({{ $prospect->id }})" class="text-[10px] font-bold text-emerald-600 hover:underline">
-                                            Resume
-                                        </button>
-                                    @endif
-                                    <span class="text-zinc-300 dark:text-zinc-700 text-[10px]">|</span>
                                     <a href="{{ route('prospects.timeline', $prospect->id) }}" class="text-[10px] text-indigo-600 hover:underline font-semibold" title="View outreach timeline tracking">
                                         Timeline
                                     </a>

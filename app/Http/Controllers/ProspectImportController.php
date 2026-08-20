@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Prospect;
-use App\Models\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,10 +13,7 @@ class ProspectImportController extends Controller
      */
     public function show()
     {
-        $tenantId = auth()->user()->organization_id ?? auth()->id();
-        $blueprints = Blueprint::where('tenant_id', $tenantId)->get();
-
-        return view('theme::dashboard.prospects.import', compact('blueprints'));
+        return view('theme::dashboard.prospects.import');
     }
 
     /**
@@ -40,16 +36,8 @@ class ProspectImportController extends Controller
      */
     public function upload(Request $request)
     {
-        $tenantId = auth()->user()->organization_id ?? auth()->id();
-
         $request->validate([
             'file' => 'required|file|mimes:csv,txt|max:2048',
-            'blueprint_id' => [
-                'nullable',
-                \Illuminate\Validation\Rule::exists('blueprints', 'id')->where(function ($query) use ($tenantId) {
-                    $query->where('tenant_id', $tenantId);
-                }),
-            ],
         ]);
 
         $file = $request->file('file');
@@ -78,7 +66,6 @@ class ProspectImportController extends Controller
         // Put temp info in session
         session([
             'import_temp_path' => $tempPath,
-            'import_blueprint_id' => $request->input('blueprint_id'),
         ]);
 
         // List of prospect model fields to map
@@ -119,7 +106,6 @@ class ProspectImportController extends Controller
     {
         $tenantId = auth()->user()->organization_id ?? auth()->id();
         $tempPath = session('import_temp_path');
-        $blueprintId = session('import_blueprint_id');
 
         if (!$tempPath || !Storage::exists($tempPath)) {
             return redirect()->route('prospects.import.show')->with('error', 'Temporary file not found or expired. Please upload again.');
@@ -181,7 +167,6 @@ class ProspectImportController extends Controller
                     'contact_email' => $contactEmail,
                     'contact_role' => $contactRole,
                     'status' => 'new',
-                    'blueprint_id' => $blueprintId ?: null,
                     'current_step_order' => 0,
                     'notes' => $notes,
                     'stage' => 'New',
@@ -198,7 +183,7 @@ class ProspectImportController extends Controller
 
         // Clean up temp file
         Storage::delete($tempPath);
-        session()->forget(['import_temp_path', 'import_blueprint_id']);
+        session()->forget(['import_temp_path']);
 
         $message = "Prospects import completed. Successfully imported: {$imported}";
         if ($skipped > 0) {
@@ -218,16 +203,9 @@ class ProspectImportController extends Controller
 
         $request->validate([
             'file' => 'required|file|mimes:csv,txt|max:2048',
-            'blueprint_id' => [
-                'nullable',
-                \Illuminate\Validation\Rule::exists('blueprints', 'id')->where(function ($query) use ($tenantId) {
-                    $query->where('tenant_id', $tenantId);
-                }),
-            ],
         ]);
 
         $file = $request->file('file');
-        $blueprintId = $request->input('blueprint_id');
 
         $imported = 0;
         $skipped = 0;
@@ -267,9 +245,7 @@ class ProspectImportController extends Controller
                     'company_name' => $companyName ?: 'Unknown',
                     'contact_name' => $contactName ?: 'Unknown',
                     'contact_email' => $contactEmail,
-                    'contact_role' => $contactRole,
                     'status' => 'new',
-                    'blueprint_id' => $blueprintId ?: null,
                     'current_step_order' => 0,
                     'notes' => $notes,
                 ]);

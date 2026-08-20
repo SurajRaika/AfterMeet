@@ -6,16 +6,13 @@
                 <th class="px-4 py-2.5 text-left font-semibold text-zinc-500 uppercase tracking-wider">Company</th>
                 <th class="px-4 py-2.5 text-center font-semibold text-zinc-500 uppercase tracking-wider">Status</th>
                 <th class="px-4 py-2.5 text-left font-semibold text-zinc-500 uppercase tracking-wider">Stage</th>
-                <th class="px-4 py-2.5 text-left font-semibold text-zinc-500 uppercase tracking-wider">Blueprint / Sequence</th>
                 <th class="px-4 py-2.5 text-right font-semibold text-zinc-500 uppercase tracking-wider">Actions</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-950">
             @forelse($this->prospects as $prospect)
                 @php
-                    $currentStep = $prospect->currentStep();
-                    $hasPendingStep = $prospect->blueprint_id && $currentStep;
-                    $isNew = $prospect->status === 'new' || !$prospect->blueprint_id;
+                    $isNew = $prospect->status === 'new';
                     $isActive = $prospect->status === 'active';
                     $isPaused = $prospect->status === 'paused';
                 @endphp
@@ -65,7 +62,7 @@
                                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                     <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                                 </span>
-                                Started
+                                Active
                             </span>
                         @elseif($isPaused)
                             <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/60">
@@ -91,56 +88,8 @@
                         </span>
                     </td>
 
-                    <!-- Sequence Column -->
-                    <td class="px-4 py-3 whitespace-nowrap text-zinc-500 dark:text-zinc-400">
-                        @if($prospect->blueprint)
-                            <span class="font-semibold text-zinc-700 dark:text-zinc-300">{{ $prospect->blueprint->name }}</span>
-                            <div class="text-[10px] text-zinc-400 mt-0.5">
-                                @if($hasPendingStep)
-                                    Next: Step {{ $prospect->current_step_order + 1 }} ({{ $prospect->currentStep()->template->name ?? 'No template' }})
-                                @else
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Sequence Finished</span>
-                                @endif
-                            </div>
-                        @else
-                            <span class="text-zinc-400 text-[11px] italic">Not assigned yet</span>
-                        @endif
-                    </td>
-
                     <!-- Compact Actions Column -->
                     <td class="px-4 py-3 whitespace-nowrap text-right font-medium space-x-1.5">
-                        @if($isNew)
-                            <!-- Start Contacting Button -->
-                            <button type="button" wire:click="openStartContacting({{ $prospect->id }})" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-sm transition-colors" title="Select blueprint and start sequence">
-                                <x-phosphor-paper-plane-tilt-bold class="w-3.5 h-3.5" />
-                                Start Contacting
-                            </button>
-                        @elseif($isActive)
-                            <!-- Pause Button -->
-                            <button type="button" wire:click="pauseContacting({{ $prospect->id }})" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded transition-colors shadow-sm" title="Pause emailing">
-                                <x-phosphor-pause-bold class="w-3.5 h-3.5" />
-                                Pause
-                            </button>
-                            <!-- Send Next Step -->
-                            @if($hasPendingStep)
-                                <button type="button" wire:click="sendNextStep({{ $prospect->id }})" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-sm transition-colors" title="Send Step {{ $prospect->current_step_order + 1 }}">
-                                    <x-phosphor-arrow-right-bold class="w-3.5 h-3.5" />
-                                    Send Next Step
-                                </button>
-                            @else
-                                <button disabled class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700 cursor-not-allowed">
-                                    Finished
-                                </button>
-                            @endif
-                        @elseif($isPaused)
-                            <!-- Resume Button -->
-                            <button type="button" wire:click="resumeContacting({{ $prospect->id }})" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded shadow-sm transition-colors" title="Resume sequence">
-                                <x-phosphor-play-bold class="w-3.5 h-3.5" />
-                                Resume
-                            </button>
-                        @endif
-
-                        <span class="text-zinc-200 dark:text-zinc-800">|</span>
                         <a href="{{ route('prospects.timeline', $prospect->id) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors font-semibold" title="View outreach timeline tracking">Timeline</a>
                         <span class="text-zinc-200 dark:text-zinc-800">|</span>
                         <a href="{{ route('prospects.edit', $prospect->id) }}" class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-300 transition-colors">Edit</a>
@@ -150,10 +99,10 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-10 text-center text-zinc-400 dark:text-zinc-500">
+                    <td colspan="5" class="px-4 py-10 text-center text-zinc-400 dark:text-zinc-500">
                         <x-phosphor-users-duotone class="w-10 h-10 mx-auto text-zinc-300 dark:text-zinc-700" />
                         <p class="text-xs mt-1.5 font-medium">No prospects found</p>
-                        <p class="text-[11px] mt-0.5">Add individual prospects or upload a CSV file to begin outreach.</p>
+                        <p class="text-[11px] mt-0.5">Add individual prospects or upload a CSV file.</p>
                     </td>
                 </tr>
             @endforelse
